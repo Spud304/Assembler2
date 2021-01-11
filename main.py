@@ -5,6 +5,8 @@ from ps import commandType
 import re
 from timer import Timer
 import sys
+from gui import MyFrame, MyPanel
+import wx
 
 sys.path.append(".")
 
@@ -53,6 +55,7 @@ def secondPass(init_Table, fileName):
       if NL_File[i].strip('@') not in init_Table.keys(): #Makes sure it isn't a label
         try: #make sure it isnt an int like @1 or something
           thing = int(NL_File[i].strip('@'))
+          thing += thing
         except (TypeError, ValueError): #Try except is a pretty lazy way to handle this, but meh
           init_Table[NL_File[i].strip('@')] = n
           n += 1
@@ -97,7 +100,10 @@ t.start()
 print('start')
 
 #I like to time to see how long it takes
-main('rect.asm')
+# main('rect.asm')
+app = wx.App(False)
+frm = MyFrame()
+app.MainLoop()
 
 print('stop')
 t.stop()
