@@ -5,6 +5,8 @@ from ps import commandType
 import re
 from timer import Timer
 import sys
+import time
+from progressBar import printProgressBar
 
 sys.path.append(".")
 
@@ -79,11 +81,14 @@ def main(fileName):
     hack = open('out.hack', 'w')
 
   #Amazing, you have finally reached the commmand parse loop. Only took 80 lines and god knows how many hours
+  printProgressBar(0, len(L_File), prefix = 'Progress:', suffix = 'Complete', length = 50)
   for i in range(len(L_File)):
     try:
       out = cd.parseCmd(L_File[i])
+      printProgressBar(i + 1, len(L_File), prefix = 'Progress:', suffix = 'Complete', length = 50)
       if out != 'label':
         hack.write(out + '\n')
+        time.sleep(.1) #Bar looks much cooler
     except ValueError:
       print(i, L_File[i])
 
@@ -94,10 +99,13 @@ def main(fileName):
 
 t.start()
 
-print('start')
+# print('start')
 
 #I like to time to see how long it takes
-main('rect.asm')
+file = input('File Name: ')
+main(file)
 
-print('stop')
+# print('stop')
 t.stop()
+
+k = input('press enter to close the window')
