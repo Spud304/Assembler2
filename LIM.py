@@ -5,6 +5,17 @@ def generateZero(msg): #Makes binary numbers have the proper amount of 0's
     out += str(0)
   return out
 
+def openOrCreate(file):
+    try:
+        hack = open(file, 'x')
+    except FileExistsError: #Creates file if it does not exist, otherwise it overwrites it
+        hack = open(file, 'a')
+    return hack
+
+def wipeFiles():
+  open('high.bin', 'w').close()
+  open('low.bin', 'w').close()
+
 def checkDataType(msg: str):
   command = {
     'LDX' : 'type1',
@@ -84,18 +95,27 @@ def dataType2(msg: str, value: int):
   except ValueError:
     print('ouch')
 
+def writeToHighLowFile(output):
+  print(f'high {output[0:7]}')
+  print(f'low {output[8:15]}')
+  HIGH_FILE = 'high.bin'
+  LOW_FILE = 'low.bin'
+  HF = openOrCreate(HIGH_FILE)
+  HF.write(output[0:7] + '\n')
+  HF.close()
+  LF = openOrCreate(LOW_FILE)
+  LF.write(output[8:15] + '\n')
+  LF.close()
+
 
 def main(FileName):
     file = open(FileName, 'r').read() #open file
     L_FILE = file.split('\n')
     LL_FILE  = [x for x in L_FILE if x]
     print(LL_FILE)
-    try:
-        hack = open('out.txt', 'x')
-    except FileExistsError: #Creates file if it does not exist, otherwise it overwrites it
-        hack = open('out.txt', 'w')
+    wipeFiles()
     for line in LL_FILE:
-        print(line)
+        # print(line)
         NL_FILE = line.split(' ')
         out = ''
         if checkDataType(NL_FILE[0]) == 'type0':
@@ -105,16 +125,14 @@ def main(FileName):
         if checkDataType(NL_FILE[0]) == 'type2':
             out = dataType2(NL_FILE[0], int(NL_FILE[1], 16))
         try:
-            hack.write(out + '\n')
+            writeToHighLowFile(out)
         except:
-            hack.write('none\n')
-    hack.write('')
-    hack.close()
+            print(f'something went wrong, tried to write {out}')
 
 
 main('test.asm')
 
-thing = '0x05'
+## TODO: Labels, output high and low
 
 # print(type(int(thing, 16)))
 

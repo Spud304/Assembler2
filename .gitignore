@@ -4,3 +4,5 @@
 *.asm
 *venv/
 *vscode/
+*.bin
+*.txt
