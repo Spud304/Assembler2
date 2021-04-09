@@ -5,7 +5,7 @@ def commandType(line):
     return 'C_Command'
   if '@' in line:
     return 'A_Command'
-  if '(' in line:
+  if ':' in line:
     return 'L_Command'
   else:
     return 'NaC' #Not a Command

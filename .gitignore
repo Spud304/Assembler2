@@ -2,3 +2,5 @@
 *.pyc
 *.hack
 *.asm
+*venv/
+*vscode/

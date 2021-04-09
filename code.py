@@ -45,7 +45,7 @@ def jumpCmd(msg):
   try:
     return jump[str(msg)]
   except KeyError:
-    return '000'
+    print('You done did something wrong')
 
 def compCmd(msg):
   #The first bit in the number is a
@@ -82,7 +82,8 @@ def compCmd(msg):
   try:
     return command[str(msg)]
   except KeyError:
-    return '0101010'
+    print('You done did something wrong')
+
 
 
 #Dear god I hated writing this thing, its a mess and it shows. I'm done with the lab and do not have the energy to rewrite it. So instead enjoy my comments
