@@ -1,9 +1,12 @@
+import json
+
 def generateZero(msg): #Makes binary numbers have the proper amount of 0's
   mLen = 16 - len(msg)
   out = ''
   for i in range(mLen):
     out += str(0)
   return out
+
 
 def openOrCreate(file):
     try:
@@ -12,12 +15,15 @@ def openOrCreate(file):
         hack = open(file, 'a')
     return hack
 
+
 def wipeFiles():
   open('high.bin', 'w').close()
   open('low.bin', 'w').close()
 
+
 def checkDataType(msg: str):
   command = {
+    '#define' : 'typeVar',
     'LDX' : 'type1',
     'STX' : 'type1',
     'LDY' : 'type1',
@@ -41,7 +47,7 @@ def checkDataType(msg: str):
   }
   try:
     return command[msg]
-  except ValueError:
+  except KeyError:
     print('Uh oh invalid command')
 
 
@@ -59,6 +65,7 @@ def dataType0(msg: str):
     return generateZero(out) + out
   except KeyError:
     print('huh')
+
 
 def dataType1(msg: str, address: int):
   command = {
@@ -95,6 +102,7 @@ def dataType2(msg: str, value: int):
   except ValueError:
     print('ouch')
 
+
 def writeToHighLowFile(output):
   print(f'high {output[0:7]}')
   print(f'low {output[8:15]}')
@@ -108,7 +116,38 @@ def writeToHighLowFile(output):
   LF.close()
 
 
+def symbolWrite(init_Table):
+  #In charge of opening and writing the symbolTable
+  Symbol_Table = open('symbolTable.json', 'w')
+  jsonf = json.dumps(init_Table)
+  Symbol_Table.write(jsonf)
+  Symbol_Table.close()
+
+
+def firstPass(FileName):
+  file = open(FileName, 'r').read() #open file
+  L_FILE = file.split('\n')
+  LL_FILE  = [x for x in L_FILE if x]
+  init_Table = {}
+  line_Counter = 0
+  for line in L_FILE:
+    #line[0] = instruction, line[1] = label, assuming not subroutine
+    #line[0] = JSR, line[1] = Subroutine, line[2] = label
+    #init_Table[name] = number
+    temp_Line = line.split(' ')
+    if ':' in line and temp_Line[0] != 'JSR':
+      init_Table[temp_Line[1]] = line_Counter - 2
+    if ':' in line and temp_Line[0] == 'JSR':
+      init_Table[temp_Line[2]] = line_Counter - 2
+    if '#define' in line:
+      define, var, address = line.split(' ')
+      init_Table[var] = address
+    line_Counter += 1
+  symbolWrite(init_Table)
+
+
 def main(FileName):
+    firstPass(FileName)
     file = open(FileName, 'r').read() #open file
     L_FILE = file.split('\n')
     LL_FILE  = [x for x in L_FILE if x]
@@ -124,6 +163,8 @@ def main(FileName):
             out = dataType1(NL_FILE[0], int(NL_FILE[1], 16))
         if checkDataType(NL_FILE[0]) == 'type2':
             out = dataType2(NL_FILE[0], int(NL_FILE[1], 16))
+        if checkDataType(NL_FILE[0]) == 'typeVar':
+            out = ''
         try:
             writeToHighLowFile(out)
         except:
@@ -133,11 +174,6 @@ def main(FileName):
 main('test.asm')
 
 ## TODO: Labels, output high and low
-
-# print(type(int(thing, 16)))
-
-# print(type(0x05))
-
 #colon is where it jumps to
 #first 5 bits instruction
 #3 diff data formats, some don't take extra args, inc, dec
