@@ -19,6 +19,7 @@ def openOrCreate(file):
 def wipeFiles():
   open('high.bin', 'w').close()
   open('low.bin', 'w').close()
+  open('debug.txt', 'w').close()
 
 
 def checkDataType(msg: str):
@@ -46,9 +47,10 @@ def checkDataType(msg: str):
     'BRK' : 'type0'
   }
   try:
+    # print(f'msg={msg}, type={command[msg]}')
     return command[msg]
   except KeyError:
-    print('Uh oh invalid command')
+    print(f'{msg} caused a problem')
 
 
 def dataType0(msg: str):
@@ -64,7 +66,7 @@ def dataType0(msg: str):
     out = f'{command[msg]:0>5b}'
     return generateZero(out) + out
   except KeyError:
-    print('huh')
+    print(f'{msg} caused a problem')
 
 
 def dataType1(msg: str, address: int):
@@ -87,7 +89,7 @@ def dataType1(msg: str, address: int):
     add = f'{address:0>11b}'
     return add + inst
   except ValueError:
-    print('oingo boingo')
+    print(f'{msg} caused a problem')
 
 def dataType2(msg: str, value: int):
   command = {
@@ -100,12 +102,13 @@ def dataType2(msg: str, value: int):
     out = val + inst
     return generateZero(out) + out
   except ValueError:
-    print('ouch')
+    print(f'{msg} caused a problem')
 
 
 def writeToHighLowFile(output):
-  print(f'high {output[0:7]}')
-  print(f'low {output[8:15]}')
+  DEBUG_FILE = 'debug.txt'
+  # print(f'high {output[0:7]}')
+  # print(f'low {output[8:15]}')
   HIGH_FILE = 'high.bin'
   LOW_FILE = 'low.bin'
   HF = openOrCreate(HIGH_FILE)
@@ -114,6 +117,9 @@ def writeToHighLowFile(output):
   LF = openOrCreate(LOW_FILE)
   LF.write(output[8:15] + '\n')
   LF.close()
+  DF = openOrCreate(DEBUG_FILE)
+  DF.write(output + '\n')
+  DF.close()
 
 
 def symbolWrite(init_Table):
@@ -124,11 +130,10 @@ def symbolWrite(init_Table):
   Symbol_Table.close()
 
 
-def firstPass(FileName):
+def firstPass(FileName, init_Table):
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
   LL_FILE  = [x for x in L_FILE if x]
-  init_Table = {}
   line_Counter = 0
   for line in L_FILE:
     #line[0] = instruction, line[1] = label, assuming not subroutine
@@ -136,9 +141,9 @@ def firstPass(FileName):
     #init_Table[name] = number
     temp_Line = line.split(' ')
     if ':' in line and temp_Line[0] != 'JSR':
-      init_Table[temp_Line[1]] = line_Counter - 2
+      init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter - 2)
     if ':' in line and temp_Line[0] == 'JSR':
-      init_Table[temp_Line[2]] = line_Counter - 2
+      init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter - 2)
     if '#define' in line:
       define, var, address = line.split(' ')
       init_Table[var] = address
@@ -147,31 +152,37 @@ def firstPass(FileName):
 
 
 def main(FileName):
-    firstPass(FileName)
-    file = open(FileName, 'r').read() #open file
-    L_FILE = file.split('\n')
-    LL_FILE  = [x for x in L_FILE if x]
-    print(LL_FILE)
-    wipeFiles()
-    for line in LL_FILE:
-        # print(line)
-        NL_FILE = line.split(' ')
-        out = ''
-        if checkDataType(NL_FILE[0]) == 'type0':
-            out = dataType0(NL_FILE[0])
-        if checkDataType(NL_FILE[0]) == 'type1':
-            out = dataType1(NL_FILE[0], int(NL_FILE[1], 16))
-        if checkDataType(NL_FILE[0]) == 'type2':
-            out = dataType2(NL_FILE[0], int(NL_FILE[1], 16))
-        if checkDataType(NL_FILE[0]) == 'typeVar':
-            out = ''
-        try:
-            writeToHighLowFile(out)
-        except:
-            print(f'something went wrong, tried to write {out}')
+  init_Table = {}
+  firstPass(FileName, init_Table)
+  file = open(FileName, 'r').read() #open file
+  L_FILE = file.split('\n')
+  LL_FILE  = [x.split(';', 1)[0] for x in L_FILE if x]
+  # print(LL_FILE)
+  wipeFiles()
+  print(init_Table)
+  for line in LL_FILE:
+    print(line)
+    NL_FILE = line.split(' ')
+    out = ''
+    if checkDataType(NL_FILE[0]) == 'type0':
+      out = dataType0(NL_FILE[0])
+    if checkDataType(NL_FILE[0]) == 'typeVar':
+      out = ''
+    if len(NL_FILE) > 1:
+      if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define': 
+        print('this ran')
+        NL_FILE[1] = init_Table[str(NL_FILE[1])]
+    if checkDataType(NL_FILE[0]) == 'type1':
+      out = dataType1(NL_FILE[0], int(NL_FILE[1], 16))
+    if checkDataType(NL_FILE[0]) == 'type2':
+      out = dataType2(NL_FILE[0], int(NL_FILE[1], 16))
+    try:
+      writeToHighLowFile(out)
+    except:
+      print(f'something went wrong, tried to write {out}')
 
 
-main('test.asm')
+main('music1.asm')
 
 ## TODO: Labels, output high and low
 #colon is where it jumps to

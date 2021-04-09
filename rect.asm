@@ -1,35 +1,13 @@
-// This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
-// File name: projects/06/rect/Rect.asm
+#define test_var 0x7DE
 
-// Draws a rectangle at the top-left corner of the screen.
-// The rectangle is 16 pixels wide and R0 pixels high.
-
-   @0
-   D=M
-   @INFINITE_LOOP
-   D;JLE 
-   @counter
-   M=D
-   @SCREEN
-   D=A
-   @address
-   M=D
-(LOOP)
-   @address
-   A=M
-   M=-1
-   @address
-   D=M
-   @32
-   D=D+A
-   @address
-   M=D
-   @counter
-   MD=M-1
-   @LOOP
-   D;JGT
-(INFINITE_LOOP)
-   @INFINITE_LOOP
-   0;JMP
+LVX 0x0                         ;Resetting vars
+STX 0x7DD label:                ;counter1 1
+STX test_var                       ;counter1 2
+STX 0x7DF                       ;counter1 3   use this for timing 
+STX 0x7E0                       ;counter2 1   note timing 
+STX 0x7E1                       ;counter2 2   note timing 
+STX 0x7E2                       ;timing comp value
+LVY 0xF
+STY 0x7E3                       ;tone comp low
+STY 0x7E4                       ;tone comp high
+STX 0x7E5    
