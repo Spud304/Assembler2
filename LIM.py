@@ -1,4 +1,26 @@
 import json
+import sys, getopt
+from timer import Timer
+import os
+
+os.system("")
+
+# Class of different styles
+class style():
+    BLACK = '\033[30m'
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'
+    BLUE = '\033[34m'
+    MAGENTA = '\033[35m'
+    CYAN = '\033[36m'
+    WHITE = '\033[37m'
+    UNDERLINE = '\033[4m'
+    RESET = '\033[0m'
+
+DEBUGGING = False
+
+t = Timer()
 
 def generateZero(msg): #Makes binary numbers have the proper amount of 0's
   mLen = 16 - len(msg)
@@ -19,7 +41,8 @@ def openOrCreate(file):
 def wipeFiles():
   open('high.bin', 'w').close()
   open('low.bin', 'w').close()
-  open('debug.txt', 'w').close()
+  if DEBUGGING == True:
+    open('debug.txt', 'w').close()
 
 
 def checkDataType(msg: str):
@@ -117,9 +140,10 @@ def writeToHighLowFile(output):
   LF = openOrCreate(LOW_FILE)
   LF.write(output[8:15] + '\n')
   LF.close()
-  DF = openOrCreate(DEBUG_FILE)
-  DF.write(output + '\n')
-  DF.close()
+  if DEBUGGING == True:
+    DF = openOrCreate(DEBUG_FILE)
+    DF.write(output + '\n')
+    DF.close()
 
 
 def symbolWrite(init_Table):
@@ -141,9 +165,9 @@ def firstPass(FileName, init_Table):
     #init_Table[name] = number
     temp_Line = line.split(' ')
     if ':' in line and temp_Line[0] != 'JSR':
-      init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter - 2)
+      init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
     if ':' in line and temp_Line[0] == 'JSR':
-      init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter - 2)
+      init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
     if '#define' in line:
       define, var, address = line.split(' ')
       init_Table[var] = address
@@ -151,17 +175,14 @@ def firstPass(FileName, init_Table):
   symbolWrite(init_Table)
 
 
-def main(FileName):
+def run(FileName):
   init_Table = {}
   firstPass(FileName, init_Table)
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
   LL_FILE  = [x.split(';', 1)[0] for x in L_FILE if x]
-  # print(LL_FILE)
   wipeFiles()
-  print(init_Table)
   for line in LL_FILE:
-    print(line)
     NL_FILE = line.split(' ')
     out = ''
     if checkDataType(NL_FILE[0]) == 'type0':
@@ -170,7 +191,6 @@ def main(FileName):
       out = ''
     if len(NL_FILE) > 1:
       if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define': 
-        print('this ran')
         NL_FILE[1] = init_Table[str(NL_FILE[1])]
     if checkDataType(NL_FILE[0]) == 'type1':
       out = dataType1(NL_FILE[0], int(NL_FILE[1], 16))
@@ -182,25 +202,49 @@ def main(FileName):
       print(f'something went wrong, tried to write {out}')
 
 
-main('music1.asm')
+def main(argv):
+  options = "hd:"
+  long_options = ["Help", "debug"]
+  try:
+    # Parsing argument
+    arguments, values = getopt.getopt(argv, options, long_options)
+    # checking each argument
+    ##TODO: GET THIS TO WORK
+    for currentArgument, currentValue in arguments:
+      print(1)
+      # print(currentArgument, currentValue)
+      if currentArgument in ("-h", "--Help"):
+        print ("LIM.py <filename> <debug>")
+        print ("With the debug flag a txt dump of the output will be created")      
+      elif currentArgument in ("-d", "--debug"):
+        DEBUGGING = TRUE
+        print ("debug mode")
+    
+    run(argv[0])
 
-## TODO: Labels, output high and low
-#colon is where it jumps to
-#first 5 bits instruction
-#3 diff data formats, some don't take extra args, inc, dec
+  except getopt.error as err:
+    # output error, and return with an error code
+    print (str(err))
 
-#datatype 1; 4bit value
-#11 bits for address
-#mem is between 0000, 2047. all unused words are 0x
-# xxxxxxxxxxxIIIII
+t.start()
 
-# xxxxxxxxxxxIIIII 0
-# xxxxxxxDDDDIIIII 1
-# AAAAAAAAAAAIIIII 2
+# run("music1.asm")
 
-# 0xC
-# 1100
-# 8421
+if __name__ == "__main__" and len(sys.argv) >= 2:
+  print(style.BLUE + """
+ /$$       /$$$$$$ /$$      /$$
+| $$      |_  $$_/| $$$    /$$$
+| $$        | $$  | $$$$  /$$$$
+| $$        | $$  | $$ $$/$$ $$
+| $$        | $$  | $$  $$$| $$
+| $$        | $$  | $$\  $ | $$
+| $$$$$$$$ /$$$$$$| $$ \/  | $$
+|________/|______/|__/     |__/
+""" + style.RESET)
+  #1st arg is script name
+  main(sys.argv[1:])
 
-# 0000
-# 2047FF
+  # asm_file = sys.argv[1]
+  # run(asm_file)
+
+t.stop()
