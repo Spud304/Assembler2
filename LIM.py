@@ -2,8 +2,23 @@ import json
 import sys, getopt
 from timer import Timer
 import os
+import time
 
 os.system("")
+
+
+def progressbar(it, prefix="", size=60, file=sys.stdout):
+    count = len(it)
+    def show(j):
+        x = int(size*j/count)
+        file.write("%s[%s%s] %i/%i\r" % (prefix, "#"*x, "."*(size-x), j, count))
+        file.flush()        
+    show(0)
+    for i, item in enumerate(it):
+        yield item
+        show(i+1)
+    file.write("\n")
+    file.flush()
 
 # Class of different styles
 class style():
@@ -15,10 +30,12 @@ class style():
     MAGENTA = '\033[35m'
     CYAN = '\033[36m'
     WHITE = '\033[37m'
+    VIOLET = '\33[35m'
+    GREENBG2  = '\33[92m'
     UNDERLINE = '\033[4m'
     RESET = '\033[0m'
 
-DEBUGGING = False
+DEBUGGING = True
 
 t = Timer()
 
@@ -37,8 +54,15 @@ def openOrCreate(file):
         hack = open(file, 'a')
     return hack
 
+def createTable():
+  values = {}
+  Symbol_Table = open('symbolTable.json', 'w')
+  jsonf = json.dumps(values)
+  Symbol_Table.write(jsonf)
+  Symbol_Table.close()
 
 def wipeFiles():
+  createTable()
   open('high.bin', 'w').close()
   open('low.bin', 'w').close()
   if DEBUGGING == True:
@@ -73,7 +97,9 @@ def checkDataType(msg: str):
     # print(f'msg={msg}, type={command[msg]}')
     return command[msg]
   except KeyError:
-    print(f'{msg} caused a problem')
+    print(f'{style.RED}{msg} caused a problem{style.RESET}')
+    print('Killing process, fix your shit')
+    os.kill(os.getpid(), 9)
 
 
 def dataType0(msg: str):
@@ -89,7 +115,7 @@ def dataType0(msg: str):
     out = f'{command[msg]:0>5b}'
     return generateZero(out) + out
   except KeyError:
-    print(f'{msg} caused a problem')
+    print(f'{style.RED}{msg} caused a problem{style.RESET}')
 
 
 def dataType1(msg: str, address: int):
@@ -112,7 +138,7 @@ def dataType1(msg: str, address: int):
     add = f'{address:0>11b}'
     return add + inst
   except ValueError:
-    print(f'{msg} caused a problem')
+    print(f'{style.RED}{msg} caused a problem{style.RESET}')
 
 def dataType2(msg: str, value: int):
   command = {
@@ -125,7 +151,7 @@ def dataType2(msg: str, value: int):
     out = val + inst
     return generateZero(out) + out
   except ValueError:
-    print(f'{msg} caused a problem')
+    print(f'{style.RED}{msg} caused a problem{style.RESET}')
 
 
 def writeToHighLowFile(output):
@@ -159,7 +185,7 @@ def firstPass(FileName, init_Table):
   L_FILE = file.split('\n')
   LL_FILE  = [x for x in L_FILE if x]
   line_Counter = 0
-  for line in L_FILE:
+  for line in LL_FILE:
     #line[0] = instruction, line[1] = label, assuming not subroutine
     #line[0] = JSR, line[1] = Subroutine, line[2] = label
     #init_Table[name] = number
@@ -171,17 +197,18 @@ def firstPass(FileName, init_Table):
     if '#define' in line:
       define, var, address = line.split(' ')
       init_Table[var] = address
+      line_Counter -= 1
     line_Counter += 1
   symbolWrite(init_Table)
 
 
 def run(FileName):
+  wipeFiles()
   init_Table = {}
   firstPass(FileName, init_Table)
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
   LL_FILE  = [x.split(';', 1)[0] for x in L_FILE if x]
-  wipeFiles()
   for line in LL_FILE:
     NL_FILE = line.split(' ')
     out = ''
@@ -231,20 +258,30 @@ t.start()
 # run("music1.asm")
 
 if __name__ == "__main__" and len(sys.argv) >= 2:
+  os.system('cls' if os.name == 'nt' else 'clear')
+  for i in range(4):
+    print('')
+  print(f"""           
+           ___________________________________
+          /                                   \                                          
+          |  A Creation By {style.GREENBG2}Spud{style.RESET} and {style.VIOLET}TheError07{style.RESET}|
+          \___________________________________/
+  
+  """)
   print(style.BLUE + """
- /$$       /$$$$$$ /$$      /$$
-| $$      |_  $$_/| $$$    /$$$
-| $$        | $$  | $$$$  /$$$$
-| $$        | $$  | $$ $$/$$ $$
-| $$        | $$  | $$  $$$| $$
-| $$        | $$  | $$\  $ | $$
-| $$$$$$$$ /$$$$$$| $$ \/  | $$
-|________/|______/|__/     |__/
+          /$$       /$$$$$$ /$$      /$$
+          | $$      |_  $$_/| $$$    /$$$
+          | $$        | $$  | $$$$  /$$$$
+          | $$        | $$  | $$ $$/$$ $$
+          | $$        | $$  | $$  $$$| $$
+          | $$        | $$  | $$\  $ | $$
+          | $$$$$$$$ /$$$$$$| $$ \/  | $$
+          |________/|______/|__/     |__/
 """ + style.RESET)
   #1st arg is script name
   main(sys.argv[1:])
-
-  # asm_file = sys.argv[1]
-  # run(asm_file)
+  file = open(sys.argv[1], 'r').read()
+  for i in progressbar(range(100), "Computing: ", 40):
+    time.sleep(0.0001) # ineffcient but looks cool as hell
 
 t.stop()
