@@ -1,11 +1,59 @@
 import json
 import sys, getopt
-from timer import Timer
 import os
 import time
 
 os.system("")
 
+# Copyright, 2021, Henry Price, All rights Reserved
+# I did not create this, only using it for testing the times
+
+class TimerError(Exception):
+    """A custom exception used to report errors in use of Timer class"""
+
+class Timer:
+    def __init__(self):
+        self._start_time = None
+
+    def start(self):
+        """Start a new timer"""
+        if self._start_time is not None:
+            raise TimerError(f"Timer is running. Use .stop() to stop it")
+
+        self._start_time = time.perf_counter()
+
+    def stop(self):
+        """Stop the timer, and report the elapsed time"""
+        if self._start_time is None:
+            raise TimerError(f"Timer is not running. Use .start() to start it")
+
+        elapsed_time = time.perf_counter() - self._start_time
+        self._start_time = None
+        print(f"Elapsed time: {elapsed_time:0.4f} seconds")
+
+
+def asciiart():
+  Spud = f'{style.GREENBG2}Spud{style.RESET}'
+  TheError = f'{style.VIOLET}TheError07{style.RESET}'
+  for i in range(4):
+    print('')
+  print(f"""           
+           ___________________________________
+          /                                   \                                          
+          |A Creation By {Spud} and {TheError}  |
+          \___________________________________/
+  
+  """)
+  print(style.BLUE + """
+          /$$       /$$$$$$ /$$       /$$
+          | $$      |_  $$_/| $$$    /$$$
+          | $$        | $$  | $$$$  /$$$$
+          | $$        | $$  | $$ $$/$$ $$
+          | $$        | $$  | $$  $$$| $$
+          | $$        | $$  | $$\  $ | $$
+          | $$$$$$$$ /$$$$$$| $$ \/  | $$
+          |________/|______/|__/     |__/
+""" + style.RESET)
 
 def progressbar(it, prefix="", size=60, file=sys.stdout):
     count = len(it)
@@ -69,7 +117,14 @@ def wipeFiles():
     open('debug.txt', 'w').close()
 
 
-def checkDataType(msg: str):
+def errorLogger(msg, line):
+    print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET}')
+    print('Killing process, fix your shit')
+    input('Press enter to close... ')
+    os.kill(os.getpid(), 9)
+
+
+def checkDataType(msg: str, line):
   command = {
     '#define' : 'typeVar',
     'LDX' : 'type1',
@@ -97,12 +152,10 @@ def checkDataType(msg: str):
     # print(f'msg={msg}, type={command[msg]}')
     return command[msg]
   except KeyError:
-    print(f'{style.RED}{msg} caused a problem{style.RESET}')
-    print('Killing process, fix your shit')
-    os.kill(os.getpid(), 9)
+    errorLogger(msg, line)
 
 
-def dataType0(msg: str):
+def dataType0(msg: str, line):
   command = {
     'INX' : 0x06,
     'DEX' : 0x07,
@@ -114,11 +167,11 @@ def dataType0(msg: str):
   try:
     out = f'{command[msg]:0>5b}'
     return generateZero(out) + out
-  except KeyError:
-    print(f'{style.RED}{msg} caused a problem{style.RESET}')
+  except ValueError:
+    errorLogger(msg, line)
 
 
-def dataType1(msg: str, address: int):
+def dataType1(msg: str, address: int, line):
   command = {
     'LDX' : 0x00,
     'STX' : 0x01,
@@ -138,9 +191,9 @@ def dataType1(msg: str, address: int):
     add = f'{address:0>11b}'
     return add + inst
   except ValueError:
-    print(f'{style.RED}{msg} caused a problem{style.RESET}')
+    errorLogger(msg, line)
 
-def dataType2(msg: str, value: int):
+def dataType2(msg: str, value: int, line):
   command = {
     'LVX' : 0x04,
     'LVY' : 0x05,
@@ -151,25 +204,42 @@ def dataType2(msg: str, value: int):
     out = val + inst
     return generateZero(out) + out
   except ValueError:
-    print(f'{style.RED}{msg} caused a problem{style.RESET}')
+    errorLogger(msg, line)
 
 
 def writeToHighLowFile(output):
-  DEBUG_FILE = 'debug.txt'
-  # print(f'high {output[0:7]}')
-  # print(f'low {output[8:15]}')
-  HIGH_FILE = 'high.bin'
-  LOW_FILE = 'low.bin'
-  HF = openOrCreate(HIGH_FILE)
-  HF.write(output[0:7] + '\n')
-  HF.close()
-  LF = openOrCreate(LOW_FILE)
-  LF.write(output[8:15] + '\n')
-  LF.close()
-  if DEBUGGING == True:
-    DF = openOrCreate(DEBUG_FILE)
-    DF.write(output + '\n')
-    DF.close()
+  # print(len(output))
+  if len(output.strip()) == 0:
+    return
+  dataHigh = output[0:8]
+  dataLow = output[8:16]
+  # print(data)
+  try:
+    DEBUG_FILE = 'debug.txt'
+    # print(f'high {output[0:7]}')
+    # print(f'low {output[8:15]}')
+    HIGH_FILE = 'high.bin'
+    LOW_FILE = 'low.bin'
+    HF = openOrCreate(HIGH_FILE)
+    # print(bytearray(output[0:8]))
+    # print(type(output[8:16]))
+    # HF.write(hex(int(output[0:8], 2)) + '\n')
+    HF.write(dataHigh + '\n')
+    # HF.write(bytes(output[0:8], encoding='ansi'))
+    HF.close()
+    LF = openOrCreate(LOW_FILE)
+    LF.write(dataLow + '\n')
+    # LF.write(hex(int(output[8:16], 2)) + '\n')
+    # LF.write(bytes(output[8:16], encoding='ansi'))
+
+    LF.close()
+    if DEBUGGING == True:
+      DF = openOrCreate(DEBUG_FILE)
+      DF.write(output + '\n')
+      DF.close()
+  except:
+    return
+
 
 
 def symbolWrite(init_Table):
@@ -205,83 +275,84 @@ def firstPass(FileName, init_Table):
 def run(FileName):
   wipeFiles()
   init_Table = {}
+  line_Counter = 1
   firstPass(FileName, init_Table)
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
-  LL_FILE  = [x.split(';', 1)[0] for x in L_FILE if x]
+  LL_FILE = []
+  # LL_FILE  = [x.split(';', 1)[0] for x in L_FILE]
+  # really ugly for loop since I need to increment line counter
+  for x in L_FILE:
+    if x != '':
+      LL_FILE.append(x.split(';', 1)[0])
+    else:
+      LL_FILE.append(x)
+
+  # print(LL_FILE)
   for line in LL_FILE:
+    if len(line.strip()) == 0:
+      line_Counter += 1
+      continue
     NL_FILE = line.split(' ')
     out = ''
-    if checkDataType(NL_FILE[0]) == 'type0':
-      out = dataType0(NL_FILE[0])
-    if checkDataType(NL_FILE[0]) == 'typeVar':
-      out = ''
-    if len(NL_FILE) > 1:
-      if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define': 
-        NL_FILE[1] = init_Table[str(NL_FILE[1])]
-    if checkDataType(NL_FILE[0]) == 'type1':
-      out = dataType1(NL_FILE[0], int(NL_FILE[1], 16))
-    if checkDataType(NL_FILE[0]) == 'type2':
-      out = dataType2(NL_FILE[0], int(NL_FILE[1], 16))
     try:
-      writeToHighLowFile(out)
+      if checkDataType(NL_FILE[0], line_Counter) == 'type0':
+        out = dataType0(NL_FILE[0], line_Counter)
+      if checkDataType(NL_FILE[0], line_Counter) == 'typeVar':
+        out = ''
+      if len(NL_FILE) > 1:
+        if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define': 
+          NL_FILE[1] = init_Table[str(NL_FILE[1])]
+      if checkDataType(NL_FILE[0], line_Counter) == 'type1':
+        out = dataType1(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
+      if checkDataType(NL_FILE[0], line_Counter) == 'type2':
+        out = dataType2(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
     except:
-      print(f'something went wrong, tried to write {out}')
+      errorLogger(NL_FILE[0], line_Counter)
+    # try:
+    # print(bytes(out, encoding='ansi'))
+    writeToHighLowFile(out)
+    # except:
+      # print(f'something went wrong, tried to write {out}')
+    line_Counter += 1
 
 
 def main(argv):
-  options = "hd:"
-  long_options = ["Help", "debug"]
-  try:
-    # Parsing argument
-    arguments, values = getopt.getopt(argv, options, long_options)
-    # checking each argument
-    ##TODO: GET THIS TO WORK
-    for currentArgument, currentValue in arguments:
-      print(1)
-      # print(currentArgument, currentValue)
-      if currentArgument in ("-h", "--Help"):
-        print ("LIM.py <filename> <debug>")
-        print ("With the debug flag a txt dump of the output will be created")      
-      elif currentArgument in ("-d", "--debug"):
-        DEBUGGING = TRUE
-        print ("debug mode")
+  # options = "hd:"
+  # long_options = ["Help", "debug"]
+  # try:
+  #   # Parsing argument
+  #   arguments, values = getopt.getopt(argv, options, long_options)
+  #   # checking each argument
+  #   ##TODO: GET THIS TO WORK
+  #   for currentArgument, currentValue in arguments:
+  #     print(1)
+  #     # print(currentArgument, currentValue)
+  #     if currentArgument in ("-h", "--Help"):
+  #       print ("LIM.py <filename> <debug>")
+  #       print ("With the debug flag a txt dump of the output will be created")      
+  #     elif currentArgument in ("-d", "--debug"):
+  #       DEBUGGING = TRUE
+  #       print ("debug mode")
     
-    run(argv[0])
+    run(argv)
 
-  except getopt.error as err:
-    # output error, and return with an error code
-    print (str(err))
+  # except getopt.error as err:
+  #   # output error, and return with an error code
+  #   print (str(err))
 
-t.start()
 
-# run("music1.asm")
-
-if __name__ == "__main__" and len(sys.argv) >= 2:
+if __name__ == "__main__":
   os.system('cls' if os.name == 'nt' else 'clear')
-  for i in range(4):
-    print('')
-  print(f"""           
-           ___________________________________
-          /                                   \                                          
-          |  A Creation By {style.GREENBG2}Spud{style.RESET} and {style.VIOLET}TheError07{style.RESET}|
-          \___________________________________/
-  
-  """)
-  print(style.BLUE + """
-          /$$       /$$$$$$ /$$      /$$
-          | $$      |_  $$_/| $$$    /$$$
-          | $$        | $$  | $$$$  /$$$$
-          | $$        | $$  | $$ $$/$$ $$
-          | $$        | $$  | $$  $$$| $$
-          | $$        | $$  | $$\  $ | $$
-          | $$$$$$$$ /$$$$$$| $$ \/  | $$
-          |________/|______/|__/     |__/
-""" + style.RESET)
+  asciiart()
   #1st arg is script name
-  main(sys.argv[1:])
-  file = open(sys.argv[1], 'r').read()
+  file = input('Input full path to .asm file here: ')
+  t.start()
+  main(file)
+  num_lines = sum(1 for line in open(file))
   for i in progressbar(range(100), "Computing: ", 40):
     time.sleep(0.0001) # ineffcient but looks cool as hell
+  t.stop()
+  print(f'You have used {num_lines} words of memory out of 2012')
+  input('Press enter to close... ')
 
-t.stop()
