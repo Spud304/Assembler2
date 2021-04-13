@@ -10,3 +10,5 @@
 *.json
 *build/
 *dist/
+*.txt
+*.ico

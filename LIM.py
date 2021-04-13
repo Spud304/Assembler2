@@ -2,6 +2,7 @@ import json
 import sys, getopt
 import os
 import time
+import re
 
 os.system("")
 
@@ -240,7 +241,25 @@ def writeToHighLowFile(output):
   except:
     return
 
+def createTempFile(FileName):
+  temp_file = os.path.splitext(FileName)[0]+'_temp.asm'
+  openOrCreate(temp_file)
+  toCopy = open(FileName, 'r').read()
+  openTemp = open(temp_file, 'w')
+  openTemp.write(toCopy)
+  openTemp.close()
+  return temp_file
 
+def removeAllComments(FileName):
+  print(FileName)
+  pattern = '(\/\*(\w|\D)+\*\/)|(\/\/(?:[^\r\n]|\r(?!\n))*)'
+  file = open(FileName, 'r').read()
+  nfile = re.sub(pattern, '', file)
+  wfile = open(FileName, 'w')
+  # print(wfile)
+  wfile.write(nfile)
+  wfile.close()
+    
 
 def symbolWrite(init_Table):
   #In charge of opening and writing the symbolTable
@@ -251,19 +270,43 @@ def symbolWrite(init_Table):
 
 
 def firstPass(FileName, init_Table):
+  removeAllComments(FileName)
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
   LL_FILE  = [x for x in L_FILE if x]
   line_Counter = 0
+  pattern = ('\w+:')
   for line in LL_FILE:
+    # print('test')
     #line[0] = instruction, line[1] = label, assuming not subroutine
     #line[0] = JSR, line[1] = Subroutine, line[2] = label
     #init_Table[name] = number
+    print(line)
     temp_Line = line.split(' ')
-    if ':' in line and temp_Line[0] != 'JSR':
-      init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
-    if ':' in line and temp_Line[0] == 'JSR':
-      init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
+    
+    while("" in temp_Line) :
+      temp_Line.remove("")
+    # print(line)
+    # print(re.search(pattern, line))
+    # print(temp_Line)
+    if re.search(pattern, line):
+      # print(temp_Line)
+      if len(temp_Line) == 1:
+        init_Table[temp_Line[0].split(':')[0]] = hex(line_Counter)
+        # print('len 1')
+        continue
+      if len(temp_Line) == 2:
+        init_Table[temp_Line[1].split(':')[0]] = hex(line_Counter)
+        # print('len 2')
+        continue
+      if len(temp_Line) == 3:
+        init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
+        # print('len 3')
+        continue
+    # if ':' in line and temp_Line[0] != 'JSR':
+    #   init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
+    # if ':' in line and temp_Line[0] == 'JSR':
+    #   init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
     if '#define' in line:
       define, var, address = line.split(' ')
       init_Table[var] = address
@@ -280,7 +323,7 @@ def run(FileName):
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
   LL_FILE = []
-  # LL_FILE  = [x.split(';', 1)[0] for x in L_FILE]
+  # LL_FILE  = [x for x in L_FILE if x]
   # really ugly for loop since I need to increment line counter
   for x in L_FILE:
     if x != '':
@@ -348,11 +391,14 @@ if __name__ == "__main__":
   #1st arg is script name
   file = input('Input full path to .asm file here: ')
   t.start()
+  file = createTempFile(file)
+  # print(file)
   main(file)
   num_lines = sum(1 for line in open(file))
   for i in progressbar(range(100), "Computing: ", 40):
     time.sleep(0.0001) # ineffcient but looks cool as hell
   t.stop()
+  # os.remove(file)
   print(f'You have used {num_lines} words of memory out of 2012')
   input('Press enter to close... ')
 
