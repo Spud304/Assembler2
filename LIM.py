@@ -242,6 +242,8 @@ def writeToHighLowFile(output):
     return
 
 def createTempFile(FileName):
+  if FileName == '':
+    return
   temp_file = os.path.splitext(FileName)[0]+'_temp.asm'
   openOrCreate(temp_file)
   toCopy = open(FileName, 'r').read()
@@ -398,7 +400,7 @@ if __name__ == "__main__":
   for i in progressbar(range(100), "Computing: ", 40):
     time.sleep(0.0001) # ineffcient but looks cool as hell
   t.stop()
-  # os.remove(file)
+  os.remove(file)
   print(f'You have used {num_lines} words of memory out of 2012')
   input('Press enter to close... ')
 
