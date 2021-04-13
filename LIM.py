@@ -3,8 +3,10 @@ import sys, getopt
 import os
 import time
 import re
+import fnmatch
 
 os.system("")
+VER = 1.0
 
 # Copyright, 2021, Henry Price, All rights Reserved
 # I did not create this, only using it for testing the times
@@ -38,6 +40,7 @@ def asciiart():
   TheError = f'{style.VIOLET}TheError07{style.RESET}'
   for i in range(4):
     print('')
+  
   print(f"""           
            ___________________________________
           /                                   \                                          
@@ -55,6 +58,7 @@ def asciiart():
           | $$$$$$$$ /$$$$$$| $$ \/  | $$
           |________/|______/|__/     |__/
 """ + style.RESET)
+  print(f'Ver: {VER}')
 
 def progressbar(it, prefix="", size=60, file=sys.stdout):
     count = len(it)
@@ -117,9 +121,19 @@ def wipeFiles():
   if DEBUGGING == True:
     open('debug.txt', 'w').close()
 
+def find(pattern):
+  path = os.getcwd()
+  result = []
+  for root, dirs, files in os.walk(path):
+    for name in files:
+      if fnmatch.fnmatch(name, pattern):
+        result.append(os.path.join(root, name))
+  return result
 
 def errorLogger(msg, line):
+    file = find('*_temp.*')[0]
     print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET}')
+    os.remove(file)
     print('Killing process, fix your shit')
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
@@ -253,7 +267,7 @@ def createTempFile(FileName):
   return temp_file
 
 def removeAllComments(FileName):
-  print(FileName)
+  # print(FileName)
   pattern = '(\/\*(\w|\D)+\*\/)|(\/\/(?:[^\r\n]|\r(?!\n))*)'
   file = open(FileName, 'r').read()
   nfile = re.sub(pattern, '', file)
@@ -283,7 +297,7 @@ def firstPass(FileName, init_Table):
     #line[0] = instruction, line[1] = label, assuming not subroutine
     #line[0] = JSR, line[1] = Subroutine, line[2] = label
     #init_Table[name] = number
-    print(line)
+    # print(line)
     temp_Line = line.split(' ')
     
     while("" in temp_Line) :
@@ -309,10 +323,14 @@ def firstPass(FileName, init_Table):
     #   init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
     # if ':' in line and temp_Line[0] == 'JSR':
     #   init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
+    
     if '#define' in line:
-      define, var, address = line.split(' ')
-      init_Table[var] = address
-      line_Counter -= 1
+      try: 
+        define, var, address = line.split(' ')
+        init_Table[var] = address
+        line_Counter -= 1
+      except:
+        errorLogger(line, line_Counter)
     line_Counter += 1
   symbolWrite(init_Table)
 
@@ -341,16 +359,19 @@ def run(FileName):
     NL_FILE = line.split(' ')
     out = ''
     try:
-      if checkDataType(NL_FILE[0], line_Counter) == 'type0':
+      if checkDataType(NL_FILE[0], line_Counter) == 'type0': 
         out = dataType0(NL_FILE[0], line_Counter)
       if checkDataType(NL_FILE[0], line_Counter) == 'typeVar':
         out = ''
       if len(NL_FILE) > 1:
+        print(NL_FILE[1])
         if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define': 
           NL_FILE[1] = init_Table[str(NL_FILE[1])]
       if checkDataType(NL_FILE[0], line_Counter) == 'type1':
+        errorLogger(NL_FILE[1], line_Counter)
         out = dataType1(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
       if checkDataType(NL_FILE[0], line_Counter) == 'type2':
+        errorLogger(NL_FILE[1], line_Counter)
         out = dataType2(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
     except:
       errorLogger(NL_FILE[0], line_Counter)
@@ -401,6 +422,9 @@ if __name__ == "__main__":
     time.sleep(0.0001) # ineffcient but looks cool as hell
   t.stop()
   os.remove(file)
-  print(f'You have used {num_lines} words of memory out of 2012')
+  if num_lines >= 2012:
+    print(f'{style.RED}Warning you have used over 2012 words of memory, \nin total you have used {num_lines} words of memory {style.RESET}')
+  else:
+    print(f'You have used {num_lines} words of memory out of 2012')
   input('Press enter to close... ')
 
