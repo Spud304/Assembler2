@@ -130,9 +130,9 @@ def find(pattern):
         result.append(os.path.join(root, name))
   return result
 
-def errorLogger(msg, line):
+def errorLogger(msg, line, whereFrom):
     file = find('*_temp.*')[0]
-    print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET}')
+    print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET} {whereFrom}')
     os.remove(file)
     print('Killing process, fix your shit')
     input('Press enter to close... ')
@@ -167,7 +167,7 @@ def checkDataType(msg: str, line):
     # print(f'msg={msg}, type={command[msg]}')
     return command[msg]
   except KeyError:
-    errorLogger(msg, line)
+    errorLogger(msg, line, 'check dataType')
 
 
 def dataType0(msg: str, line):
@@ -183,7 +183,7 @@ def dataType0(msg: str, line):
     out = f'{command[msg]:0>5b}'
     return generateZero(out) + out
   except ValueError:
-    errorLogger(msg, line)
+    errorLogger(msg, line, 'datatype0 value error')
 
 
 def dataType1(msg: str, address: int, line):
@@ -206,7 +206,7 @@ def dataType1(msg: str, address: int, line):
     add = f'{address:0>11b}'
     return add + inst
   except ValueError:
-    errorLogger(msg, line)
+    errorLogger(msg, line, 'datatype1 value error')
 
 def dataType2(msg: str, value: int, line):
   command = {
@@ -219,7 +219,7 @@ def dataType2(msg: str, value: int, line):
     out = val + inst
     return generateZero(out) + out
   except ValueError:
-    errorLogger(msg, line)
+    errorLogger(msg, line, 'datatype2 value error')
 
 
 def writeToHighLowFile(output):
@@ -327,13 +327,23 @@ def firstPass(FileName, init_Table):
     if '#define' in line:
       try: 
         define, var, address = line.split(' ')
+        if address > 0x7FF:
+          errorLogger(line, line_Counter, 'define mem overflow')
         init_Table[var] = address
         line_Counter -= 1
       except:
-        errorLogger(line, line_Counter)
+        errorLogger(line, line_Counter, 'define except')
     line_Counter += 1
   symbolWrite(init_Table)
 
+def checkValidMem(line, line_Counter):
+  if checkDataType(line[0], line_Counter) == 'type1' or 'type2':
+    address = int(line[1], 16)
+    if address > 0x7FF:
+      # print('failed 0x7FF')
+      errorLogger(hex(address), line_Counter, 'check valid mem')
+  else:
+    return
 
 def run(FileName):
   wipeFiles()
@@ -364,17 +374,16 @@ def run(FileName):
       if checkDataType(NL_FILE[0], line_Counter) == 'typeVar':
         out = ''
       if len(NL_FILE) > 1:
-        print(NL_FILE[1])
         if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define': 
           NL_FILE[1] = init_Table[str(NL_FILE[1])]
-      if checkDataType(NL_FILE[0], line_Counter) == 'type1':
-        errorLogger(NL_FILE[1], line_Counter)
-        out = dataType1(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
-      if checkDataType(NL_FILE[0], line_Counter) == 'type2':
-        errorLogger(NL_FILE[1], line_Counter)
-        out = dataType2(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
+        if checkDataType(NL_FILE[0], line_Counter) == 'type1':
+          checkValidMem(NL_FILE, line_Counter)
+          out = dataType1(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
+        if checkDataType(NL_FILE[0], line_Counter) == 'type2':
+          checkValidMem(NL_FILE, line_Counter)
+          out = dataType2(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
     except:
-      errorLogger(NL_FILE[0], line_Counter)
+      errorLogger(NL_FILE[0], line_Counter, 'main run')
     # try:
     # print(bytes(out, encoding='ansi'))
     writeToHighLowFile(out)
