@@ -6,8 +6,8 @@ import re
 import fnmatch
 
 os.system("")
-VER = '1.0.1'
-DEBUGGING = True
+VER = '1.0.2'
+DEBUGGING = False
 
 # Copyright, 2021, Henry Price, All rights Reserved
 # Discord: Spud#3639
@@ -134,10 +134,16 @@ def find(pattern):
   return result
 
 def errorLogger(msg, line, whereFrom):
+  if msg == 'fileNotFound':
+    print('Killing process, fix your shit')
+    input('Press enter to close... ')
+    os.kill(os.getpid(), 9)
+  else:
     print(find('*_temp.*'))
     file = find('*_temp.*')[0]
     print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET} {whereFrom}')
     os.remove(file)
+    os.remove('symbolTable.json')
     print('Killing process, fix your shit')
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
@@ -224,6 +230,16 @@ def dataType2(msg: str, value: int, line):
   except ValueError:
     errorLogger(msg, line, 'datatype2 value error')
 
+def fillFile():
+  fillBit = b'\xFF'
+  HIGH_FILE = 'high.bin'
+  LOW_FILE = 'low.bin'
+  HF = openOrCreate(HIGH_FILE)
+  LF = openOrCreate(LOW_FILE)
+  while HF.tell() <= 0x7FF:
+    HF.write(fillBit)
+  while LF.tell() <= 0x7FF:
+    LF.write(fillBit)
 
 def writeToHighLowFile(output):
   if len(output.strip()) == 0:
@@ -298,7 +314,6 @@ def firstPass(FileName, init_Table):
       continue
     temp_Line = line.split(' ')
     
-    print(line, hex_line_Counter)
     while("" in temp_Line) :
       temp_Line.remove("")
     if re.search(pattern, line):
@@ -372,7 +387,7 @@ def run(FileName):
       errorLogger(NL_FILE[0], debug_line_counter, 'main run, this probably means Spud made an error')
 
     writeToHighLowFile(out)
-    debug_line_counter + 1
+    debug_line_counter += 1
     address_Counter += 1
 
 
@@ -406,13 +421,20 @@ if __name__ == "__main__":
   asciiart()
   file = input('Input full path to .asm file here: ')
   t.start()
-  file = createTempFile(file)
-  main(file)
+  try:
+    open(file, 'r')
+    file = createTempFile(file)
+    main(file)
+  except:
+    print(f'{style.RED}Either file is not valid or you did not input a file path\nAssembler thinks the path is {style.RESET}[{file}]')
+    errorLogger('fileNotFound', 0, 0)
   num_lines = sum(1 for line in open(file))
   for i in progressbar(range(100), "Computing: ", 40):
     time.sleep(0.0001) # ineffcient but looks cool as hell
   t.stop()
   os.remove(file)
+  os.remove('symbolTable.json')
+  fillFile()
   if num_lines >= 2012:
     print(f'{style.RED}Warning you have used over 2012 words of memory, \nin total you have used {num_lines} words of memory {style.RESET}')
   else:
