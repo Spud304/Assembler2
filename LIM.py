@@ -6,7 +6,7 @@ import re
 import fnmatch
 
 os.system("")
-VER = 1.0
+VER = '1.0.1'
 DEBUGGING = True
 
 # Copyright, 2021, Henry Price, All rights Reserved
@@ -298,17 +298,21 @@ def firstPass(FileName, init_Table):
       continue
     temp_Line = line.split(' ')
     
+    print(line, hex_line_Counter)
     while("" in temp_Line) :
       temp_Line.remove("")
     if re.search(pattern, line):
       if len(temp_Line) == 1:
         init_Table[temp_Line[0].split(':')[0]] = hex(hex_line_Counter)
+        hex_line_Counter +=1
         continue
       if len(temp_Line) == 2:
         init_Table[temp_Line[1].split(':')[0]] = hex(hex_line_Counter)
+        hex_line_Counter +=1
         continue
       if len(temp_Line) == 3:
         init_Table[temp_Line[2].split(':')[0]] = hex(hex_line_Counter)
+        hex_line_Counter +=1
         continue
     
     if '#define' in line: 
@@ -332,7 +336,8 @@ def checkValidMem(line, line_Counter):
 def run(FileName):
   wipeFiles()
   init_Table = {}
-  line_Counter = 1
+  address_Counter = 0
+  debug_line_counter = 1
   firstPass(FileName, init_Table)
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
@@ -345,29 +350,30 @@ def run(FileName):
   # print(LL_FILE)
   for line in LL_FILE:
     if len(line.strip()) == 0:
-      line_Counter += 1
+      debug_line_counter += 1
       continue
     NL_FILE = line.split(' ')
     out = ''
     try:
-      if checkDataType(NL_FILE[0], line_Counter) == 'type0': 
-        out = dataType0(NL_FILE[0], line_Counter)
-      if checkDataType(NL_FILE[0], line_Counter) == 'typeVar':
+      if checkDataType(NL_FILE[0], debug_line_counter) == 'type0': 
+        out = dataType0(NL_FILE[0], address_Counter)
+      if checkDataType(NL_FILE[0], debug_line_counter) == 'typeVar':
         out = ''
       if len(NL_FILE) > 1:
         if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define': 
           NL_FILE[1] = init_Table[str(NL_FILE[1])]
-        if checkDataType(NL_FILE[0], line_Counter) == 'type1':
-          checkValidMem(NL_FILE, line_Counter)
-          out = dataType1(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
-        if checkDataType(NL_FILE[0], line_Counter) == 'type2':
-          checkValidMem(NL_FILE, line_Counter)
-          out = dataType2(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
+        if checkDataType(NL_FILE[0], debug_line_counter) == 'type1':
+          checkValidMem(NL_FILE, address_Counter)
+          out = dataType1(NL_FILE[0], int(NL_FILE[1], 16), debug_line_counter)
+        if checkDataType(NL_FILE[0], debug_line_counter) == 'type2':
+          checkValidMem(NL_FILE, address_Counter)
+          out = dataType2(NL_FILE[0], int(NL_FILE[1], 16), address_Counter)
     except:
-      errorLogger(NL_FILE[0], line_Counter, 'main run, this probably means Spud made an error')
+      errorLogger(NL_FILE[0], debug_line_counter, 'main run, this probably means Spud made an error')
 
     writeToHighLowFile(out)
-    line_Counter += 1
+    debug_line_counter + 1
+    address_Counter += 1
 
 
 def main(argv):
