@@ -131,9 +131,10 @@ def find(pattern):
   return result
 
 def errorLogger(msg, line, whereFrom):
+    print(find('*_temp.*'))
     file = find('*_temp.*')[0]
     print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET} {whereFrom}')
-    os.remove(file)
+    # os.remove(file)
     print('Killing process, fix your shit')
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
@@ -258,7 +259,7 @@ def writeToHighLowFile(output):
 def createTempFile(FileName):
   if FileName == '':
     return
-  temp_file = os.path.splitext(FileName)[0]+'_temp.asm'
+  temp_file = os.path.splitext(FileName)[0]+'_temp'+os.path.splitext(FileName)[1]
   openOrCreate(temp_file)
   toCopy = open(FileName, 'r').read()
   openTemp = open(temp_file, 'w')
@@ -289,51 +290,40 @@ def firstPass(FileName, init_Table):
   removeAllComments(FileName)
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
-  LL_FILE  = [x for x in L_FILE if x]
-  line_Counter = 0
+  LL_FILE = []
+  for x in L_FILE:
+    if x:
+      LL_FILE.append(x)
+  hex_line_Counter = 0
+  error_line_Counter = 1
   pattern = ('\w+:')
   for line in LL_FILE:
-    # print('test')
-    #line[0] = instruction, line[1] = label, assuming not subroutine
-    #line[0] = JSR, line[1] = Subroutine, line[2] = label
-    #init_Table[name] = number
-    # print(line)
+    if len(line.strip()) == 0:
+      error_line_Counter += 1
+      continue
     temp_Line = line.split(' ')
     
     while("" in temp_Line) :
       temp_Line.remove("")
-    # print(line)
-    # print(re.search(pattern, line))
-    # print(temp_Line)
     if re.search(pattern, line):
-      # print(temp_Line)
       if len(temp_Line) == 1:
-        init_Table[temp_Line[0].split(':')[0]] = hex(line_Counter)
-        # print('len 1')
+        init_Table[temp_Line[0].split(':')[0]] = hex(hex_line_Counter)
         continue
       if len(temp_Line) == 2:
-        init_Table[temp_Line[1].split(':')[0]] = hex(line_Counter)
-        # print('len 2')
+        init_Table[temp_Line[1].split(':')[0]] = hex(hex_line_Counter)
         continue
       if len(temp_Line) == 3:
-        init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
-        # print('len 3')
+        init_Table[temp_Line[2].split(':')[0]] = hex(hex_line_Counter)
         continue
-    # if ':' in line and temp_Line[0] != 'JSR':
-    #   init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
-    # if ':' in line and temp_Line[0] == 'JSR':
-    #   init_Table[temp_Line[2].split(':')[0]] = hex(line_Counter)
     
-    if '#define' in line:
-      try: 
-        define, var, address = line.split(' ')
-        if address > 0x7FF:
-          errorLogger(line, line_Counter, 'define mem overflow')
-        init_Table[var] = address
-        line_Counter -= 1
-      except:
-        errorLogger(line, line_Counter, 'define except')
-    line_Counter += 1
+    if '#define' in line: 
+      define, var, address = line.split(' ')
+      if int(address, 16) > 0x7FF:
+        errorLogger(line, error_line_Counter, 'define mem overflow')
+      init_Table[var] = address
+      hex_line_Counter -= 1
+    error_line_Counter += 1
+    hex_line_Counter +=1
   symbolWrite(init_Table)
 
 def checkValidMem(line, line_Counter):
@@ -356,9 +346,7 @@ def run(FileName):
   # LL_FILE  = [x for x in L_FILE if x]
   # really ugly for loop since I need to increment line counter
   for x in L_FILE:
-    if x != '':
-      LL_FILE.append(x.split(';', 1)[0])
-    else:
+    if x:
       LL_FILE.append(x)
 
   # print(LL_FILE)
