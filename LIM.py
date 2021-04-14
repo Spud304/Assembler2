@@ -359,11 +359,10 @@ def run(FileName):
   LL_FILE = []
   # really ugly for loop since I need to increment line counter
   for x in L_FILE:
-    if x:
       LL_FILE.append(x)
 
   # print(LL_FILE)
-  for line in LL_FILE:
+  for line in LL_FILE: 
     if len(line.strip()) == 0:
       debug_line_counter += 1
       continue
@@ -383,12 +382,12 @@ def run(FileName):
         if checkDataType(NL_FILE[0], debug_line_counter) == 'type2':
           checkValidMem(NL_FILE, address_Counter)
           out = dataType2(NL_FILE[0], int(NL_FILE[1], 16), address_Counter)
+      debug_line_counter += 1
+      address_Counter += 1
     except:
-      errorLogger(NL_FILE[0], debug_line_counter, 'main run, this probably means Spud made an error')
+      errorLogger(NL_FILE[0], debug_line_counter, 'Probably a label error or something, consider this a SEGFAULT though, who knows why it broke, it just did')
 
     writeToHighLowFile(out)
-    debug_line_counter += 1
-    address_Counter += 1
 
 
 def main(argv):
