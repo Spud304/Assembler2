@@ -9,8 +9,10 @@ os.system("")
 VER = 1.0
 
 # Copyright, 2021, Henry Price, All rights Reserved
-# I did not create this, only using it for testing the times
+# Discord: Spud#3639
 
+
+# I did not create this, only using it for testing the times
 class TimerError(Exception):
     """A custom exception used to report errors in use of Timer class"""
 
@@ -88,7 +90,7 @@ class style():
     UNDERLINE = '\033[4m'
     RESET = '\033[0m'
 
-DEBUGGING = True
+
 
 t = Timer()
 
@@ -102,9 +104,9 @@ def generateZero(msg): #Makes binary numbers have the proper amount of 0's
 
 def openOrCreate(file):
     try:
-        hack = open(file, 'x')
+        hack = open(file, 'xb')
     except FileExistsError: #Creates file if it does not exist, otherwise it overwrites it
-        hack = open(file, 'a')
+        hack = open(file, 'ab')
     return hack
 
 def createTable():
@@ -116,8 +118,8 @@ def createTable():
 
 def wipeFiles():
   createTable()
-  open('high.bin', 'w').close()
-  open('low.bin', 'w').close()
+  open('high.bin', 'wb').close()
+  open('low.bin', 'wb').close()
   if DEBUGGING == True:
     open('debug.txt', 'w').close()
 
@@ -134,7 +136,7 @@ def errorLogger(msg, line, whereFrom):
     print(find('*_temp.*'))
     file = find('*_temp.*')[0]
     print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET} {whereFrom}')
-    # os.remove(file)
+    os.remove(file)
     print('Killing process, fix your shit')
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
@@ -165,10 +167,9 @@ def checkDataType(msg: str, line):
     'BRK' : 'type0'
   }
   try:
-    # print(f'msg={msg}, type={command[msg]}')
     return command[msg]
   except KeyError:
-    errorLogger(msg, line, 'check dataType')
+    errorLogger(msg, line, 'Unknown Command')
 
 
 def dataType0(msg: str, line):
@@ -222,33 +223,25 @@ def dataType2(msg: str, value: int, line):
   except ValueError:
     errorLogger(msg, line, 'datatype2 value error')
 
-
+DEBUGGING = True
 def writeToHighLowFile(output):
-  # print(len(output))
   if len(output.strip()) == 0:
     return
-  dataHigh = output[0:8]
-  dataLow = output[8:16]
-  # print(data)
+  dataHigh = bytes([int(output[0:8], 2)])
+  dataLow = bytes([int(output[8:16], 2)])
   try:
     DEBUG_FILE = 'debug.txt'
-    # print(f'high {output[0:7]}')
-    # print(f'low {output[8:15]}')
     HIGH_FILE = 'high.bin'
     LOW_FILE = 'low.bin'
-    HF = openOrCreate(HIGH_FILE)
-    # print(bytearray(output[0:8]))
-    # print(type(output[8:16]))
-    # HF.write(hex(int(output[0:8], 2)) + '\n')
-    HF.write(dataHigh + '\n')
-    # HF.write(bytes(output[0:8], encoding='ansi'))
-    HF.close()
-    LF = openOrCreate(LOW_FILE)
-    LF.write(dataLow + '\n')
-    # LF.write(hex(int(output[8:16], 2)) + '\n')
-    # LF.write(bytes(output[8:16], encoding='ansi'))
 
+    HF = openOrCreate(HIGH_FILE)
+    HF.write(dataHigh)
+    HF.close()
+
+    LF = openOrCreate(LOW_FILE)
+    LF.write(dataLow)
     LF.close()
+
     if DEBUGGING == True:
       DF = openOrCreate(DEBUG_FILE)
       DF.write(output + '\n')
@@ -268,12 +261,10 @@ def createTempFile(FileName):
   return temp_file
 
 def removeAllComments(FileName):
-  # print(FileName)
   pattern = '(\/\*(\w|\D)+\*\/)|(\/\/(?:[^\r\n]|\r(?!\n))*)'
   file = open(FileName, 'r').read()
   nfile = re.sub(pattern, '', file)
   wfile = open(FileName, 'w')
-  # print(wfile)
   wfile.write(nfile)
   wfile.close()
     
@@ -330,7 +321,6 @@ def checkValidMem(line, line_Counter):
   if checkDataType(line[0], line_Counter) == 'type1' or 'type2':
     address = int(line[1], 16)
     if address > 0x7FF:
-      # print('failed 0x7FF')
       errorLogger(hex(address), line_Counter, 'check valid mem')
   else:
     return
@@ -343,7 +333,6 @@ def run(FileName):
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
   LL_FILE = []
-  # LL_FILE  = [x for x in L_FILE if x]
   # really ugly for loop since I need to increment line counter
   for x in L_FILE:
     if x:
@@ -371,12 +360,9 @@ def run(FileName):
           checkValidMem(NL_FILE, line_Counter)
           out = dataType2(NL_FILE[0], int(NL_FILE[1], 16), line_Counter)
     except:
-      errorLogger(NL_FILE[0], line_Counter, 'main run')
-    # try:
-    # print(bytes(out, encoding='ansi'))
+      errorLogger(NL_FILE[0], line_Counter, 'main run, this probably means Spud made an error')
+
     writeToHighLowFile(out)
-    # except:
-      # print(f'something went wrong, tried to write {out}')
     line_Counter += 1
 
 
@@ -408,11 +394,9 @@ def main(argv):
 if __name__ == "__main__":
   os.system('cls' if os.name == 'nt' else 'clear')
   asciiart()
-  #1st arg is script name
   file = input('Input full path to .asm file here: ')
   t.start()
   file = createTempFile(file)
-  # print(file)
   main(file)
   num_lines = sum(1 for line in open(file))
   for i in progressbar(range(100), "Computing: ", 40):

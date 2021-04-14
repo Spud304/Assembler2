@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['LIM.py'],
-             pathex=['D:\\GitHub\\Assembler2'],
+             pathex=['C:\\Users\\hcpri\\Downloads\\Assembler2'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -30,4 +30,4 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True , icon='test.ico')
+          console=True )
