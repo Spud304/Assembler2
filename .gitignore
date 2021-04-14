@@ -9,7 +9,6 @@
 *.spec
 *.json
 *build/
-*dist/
 *.txt
 *.ico
 test.py

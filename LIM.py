@@ -7,6 +7,7 @@ import fnmatch
 
 os.system("")
 VER = 1.0
+DEBUGGING = True
 
 # Copyright, 2021, Henry Price, All rights Reserved
 # Discord: Spud#3639
@@ -223,7 +224,7 @@ def dataType2(msg: str, value: int, line):
   except ValueError:
     errorLogger(msg, line, 'datatype2 value error')
 
-DEBUGGING = True
+
 def writeToHighLowFile(output):
   if len(output.strip()) == 0:
     return
@@ -243,7 +244,10 @@ def writeToHighLowFile(output):
     LF.close()
 
     if DEBUGGING == True:
-      DF = openOrCreate(DEBUG_FILE)
+      try:
+        DF = open(DEBUG_FILE, 'x')
+      except FileExistsError: #Creates file if it does not exist, otherwise it overwrites it
+        DF = open(DEBUG_FILE, 'a')
       DF.write(output + '\n')
       DF.close()
   except:
