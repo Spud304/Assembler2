@@ -41,25 +41,22 @@ class Timer:
 def asciiart():
   Spud = f'{style.GREENBG2}Spud{style.RESET}'
   TheError = f'{style.VIOLET}TheError07{style.RESET}'
-  for i in range(4):
+  for i in range(2):
     print('')
   
-  print(f"""           
-           ___________________________________
-          /                                   \                                          
-          |A Creation By {Spud} and {TheError}  |
-          \___________________________________/
-  
+  print(f"""                                               
+A Creation By {Spud} and {TheError}
+
   """)
   print(style.BLUE + """
-          /$$       /$$$$$$ /$$       /$$
-          | $$      |_  $$_/| $$$    /$$$
-          | $$        | $$  | $$$$  /$$$$
-          | $$        | $$  | $$ $$/$$ $$
-          | $$        | $$  | $$  $$$| $$
-          | $$        | $$  | $$\  $ | $$
-          | $$$$$$$$ /$$$$$$| $$ \/  | $$
-          |________/|______/|__/     |__/
+/ $$      /$$$$$$ /$$       /$$
+| $$      |_  $$_/| $$$    /$$$
+| $$        | $$  | $$$$  /$$$$
+| $$        | $$  | $$ $$/$$ $$
+| $$        | $$  | $$  $$$| $$
+| $$        | $$  | $$\  $ | $$
+| $$$$$$$$ /$$$$$$| $$ \/  | $$
+|________/|______/|__/     |__/
 """ + style.RESET)
   print(f'Ver: {VER}')
 
@@ -135,7 +132,7 @@ def find(pattern):
 
 def errorLogger(msg, line, whereFrom):
   if msg == 'fileNotFound':
-    print('Killing process, fix your shit')
+    print('Killing process, fix your code')
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
   else:
@@ -144,7 +141,7 @@ def errorLogger(msg, line, whereFrom):
     print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET} {whereFrom}')
     os.remove(file)
     os.remove('symbolTable.json')
-    print('Killing process, fix your shit')
+    print('Killing process, fix your code')
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
 
