@@ -7,7 +7,7 @@ import fnmatch
 import threading
 
 os.system("")
-VER = '1.0.2'
+VER = '1.0.3'
 DEBUGGING = False
 
 # Copyright, 2021, Henry Price, All rights Reserved
@@ -390,6 +390,7 @@ def run(FileName):
       errorLogger(NL_FILE[0], debug_line_counter, 'Probably a label error or something, consider this a SEGFAULT though, who knows why it broke, it just did')
 
     writeToHighLowFile(out)
+  return address_Counter
 
 
 def main(argv):
@@ -410,7 +411,7 @@ def main(argv):
   #       DEBUGGING = TRUE
   #       print ("debug mode")
     
-    run(argv)
+    return run(argv)
 
   # except getopt.error as err:
   #   # output error, and return with an error code
@@ -425,18 +426,18 @@ if __name__ == "__main__":
   try:
     open(file, 'r')
     file = createTempFile(file)
-    main(file)
+    lines = main(file) - 1
   except:
     print(f'{style.RED}Either file is not valid or you did not input a file path\nAssembler thinks the path is {style.RESET}[{file}]')
     errorLogger('fileNotFound', 0, 0)
-  num_lines = sum(1 for line in open(file))
+  # num_lines = sum(1 for line in open(file))
   t.stop()
   os.remove(file)
   os.remove('symbolTable.json')
   fillFile()
-  if num_lines >= 2012:
-    print(f'{style.RED}Warning you have used over 2012 words of memory, \nin total you have used {num_lines} words of memory {style.RESET}')
+  if lines >= 2012:
+    print(f'{style.RED}Warning you have used over 2012 words of memory, \nin total you have used {lines} words of memory {style.RESET}')
   else:
-    print(f'You have used {num_lines} words of memory out of 2012')
+    print(f'You have used {lines} words of memory out of 2012')
   input('Press enter to close... ')
 
