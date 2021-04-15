@@ -4,6 +4,7 @@ import os
 import time
 import re
 import fnmatch
+import threading
 
 os.system("")
 VER = '1.0.2'
@@ -345,6 +346,10 @@ def checkValidMem(line, line_Counter):
   else:
     return
 
+def makeBar():
+  for i in progressbar(range(100), "Computing: ", 40):
+    time.sleep(0.0001) # ineffcient but looks cool as hell
+
 def run(FileName):
   wipeFiles()
   init_Table = {}
@@ -425,8 +430,6 @@ if __name__ == "__main__":
     print(f'{style.RED}Either file is not valid or you did not input a file path\nAssembler thinks the path is {style.RESET}[{file}]')
     errorLogger('fileNotFound', 0, 0)
   num_lines = sum(1 for line in open(file))
-  for i in progressbar(range(100), "Computing: ", 40):
-    time.sleep(0.0001) # ineffcient but looks cool as hell
   t.stop()
   os.remove(file)
   os.remove('symbolTable.json')
