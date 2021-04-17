@@ -1,14 +1,14 @@
 import json
-import sys, getopt
+import sys
+import argparse
 import os
 import time
 import re
 import fnmatch
-import threading
 
 os.system("")
 VER = '1.0.3'
-DEBUGGING = False
+# DEBUGGING = False
 
 # Copyright, 2021, Henry Price, All rights Reserved
 # Discord: Spud#3639
@@ -115,12 +115,17 @@ def createTable():
   Symbol_Table.write(jsonf)
   Symbol_Table.close()
 
-def wipeFiles():
+def wipeFiles(DEBUGGING):
   createTable()
   open('high.bin', 'wb').close()
   open('low.bin', 'wb').close()
   if DEBUGGING == True:
     open('debug.txt', 'w').close()
+  else:
+    try:
+      os.remove('debug.txt')
+    except:
+      return
 
 def find(pattern):
   path = os.getcwd()
@@ -239,7 +244,8 @@ def fillFile():
   while LF.tell() <= 0x7FF:
     LF.write(fillBit)
 
-def writeToHighLowFile(output):
+def writeToHighLowFile(output, DEBUGGING: bool):
+  DEBUGGING = DEBUGGING
   if len(output.strip()) == 0:
     return
   dataHigh = bytes([int(output[0:8], 2)])
@@ -389,33 +395,8 @@ def run(FileName):
     except:
       errorLogger(NL_FILE[0], debug_line_counter, 'Probably a label error or something, consider this a SEGFAULT though, who knows why it broke, it just did')
 
-    writeToHighLowFile(out)
+    writeToHighLowFile(out, DEBUGGING)
   return address_Counter
-
-
-def main(argv):
-  # options = "hd:"
-  # long_options = ["Help", "debug"]
-  # try:
-  #   # Parsing argument
-  #   arguments, values = getopt.getopt(argv, options, long_options)
-  #   # checking each argument
-  #   ##TODO: GET THIS TO WORK
-  #   for currentArgument, currentValue in arguments:
-  #     print(1)
-  #     # print(currentArgument, currentValue)
-  #     if currentArgument in ("-h", "--Help"):
-  #       print ("LIM.py <filename> <debug>")
-  #       print ("With the debug flag a txt dump of the output will be created")      
-  #     elif currentArgument in ("-d", "--debug"):
-  #       DEBUGGING = TRUE
-  #       print ("debug mode")
-    
-    return run(argv)
-
-  # except getopt.error as err:
-  #   # output error, and return with an error code
-  #   print (str(err))
 
 
 if __name__ == "__main__":
@@ -426,7 +407,7 @@ if __name__ == "__main__":
   try:
     open(file, 'r')
     file = createTempFile(file)
-    lines = main(file) - 1
+    lines = run(file, False) - 1
   except:
     print(f'{style.RED}Either file is not valid or you did not input a file path\nAssembler thinks the path is {style.RESET}[{file}]')
     errorLogger('fileNotFound', 0, 0)
