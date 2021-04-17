@@ -415,6 +415,7 @@ if __name__ == "__main__":
     lines = run(file, DEBUGGING) - 1
   except:
     print(f'{style.RED}Either file is not valid or you did not input a file path\nAssembler thinks the path is {style.RESET}[{file}]')
+    print('You could also check to see if the file is in too large of a folder, blame to coder for a bad search function')
     errorLogger('fileNotFound', 0, 0)
   # num_lines = sum(1 for line in open(file))
   t.stop()
