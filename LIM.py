@@ -356,8 +356,8 @@ def makeBar():
   for i in progressbar(range(100), "Computing: ", 40):
     time.sleep(0.0001) # ineffcient but looks cool as hell
 
-def run(FileName):
-  wipeFiles()
+def run(FileName, DEBUGGING):
+  wipeFiles(DEBUGGING)
   init_Table = {}
   address_Counter = 0
   debug_line_counter = 1
