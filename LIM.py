@@ -1,10 +1,10 @@
 import json
 import sys
-import argparse
 import os
 import time
 import re
 import fnmatch
+import distutils.util
 
 os.system("")
 VER = '1.0.3'
@@ -402,12 +402,17 @@ def run(FileName, DEBUGGING):
 if __name__ == "__main__":
   os.system('cls' if os.name == 'nt' else 'clear')
   asciiart()
-  file = input('Input full path to .asm file here: ')
+  thing = input('Input full path to .asm file here: ').split(" ")
+  file, DEBUGGING = thing
+  if DEBUGGING:
+    DEBUGGING = distutils.util.strtobool(DEBUGGING)
+  else:
+    DEBUGGING = False
   t.start()
   try:
     open(file, 'r')
     file = createTempFile(file)
-    lines = run(file, False) - 1
+    lines = run(file, DEBUGGING) - 1
   except:
     print(f'{style.RED}Either file is not valid or you did not input a file path\nAssembler thinks the path is {style.RESET}[{file}]')
     errorLogger('fileNotFound', 0, 0)
