@@ -1,5 +1,5 @@
 <div align="center" id="top"> 
-  <img src="./asm2bin.ico" alt="LIM Assembler" />
+  <img src="./asm2bin.png" alt="LIM Assembler" />
 
   &#xa0;
 
