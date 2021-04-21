@@ -142,7 +142,6 @@ def errorLogger(msg, line, whereFrom):
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
   else:
-    print(find('temp_file.txt'))
     file = find('temp_file.txt')[0]
     print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET} {whereFrom}')
     os.remove(file)
