@@ -61,10 +61,10 @@ Before starting :checkered_flag:, you need to have [python](https://www.python.o
 
 ```bash
 # Clone this project
-$ git clone https://github.com/Spud304/assembler2
+$ git clone https://github.com/Spud304/LIM-Assembler
 
 # Access
-$ cd assembler2
+$ cd LIM-Assembler
 
 # Run
 $ python3 LIM.py
