@@ -7,7 +7,7 @@ import fnmatch
 import distutils.util
 
 os.system("")
-VER = '1.0.3'
+VER = '1.0.5'
 # DEBUGGING = False
 
 # Copyright, 2021, Henry Price, All rights Reserved
@@ -142,8 +142,8 @@ def errorLogger(msg, line, whereFrom):
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
   else:
-    print(find('*_temp.*'))
-    file = find('*_temp.*')[0]
+    print(find('temp_file.txt'))
+    file = find('temp_file.txt')[0]
     print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET} {whereFrom}')
     os.remove(file)
     os.remove('symbolTable.json')
@@ -276,7 +276,7 @@ def writeToHighLowFile(output, DEBUGGING: bool):
 def createTempFile(FileName):
   if FileName == '':
     return
-  temp_file = os.path.splitext(FileName)[0]+'_temp'+os.path.splitext(FileName)[1]
+  temp_file = os.path.dirname(FileName) + '\\' + 'temp_file.txt'
   openOrCreate(temp_file)
   toCopy = open(FileName, 'r').read()
   openTemp = open(temp_file, 'w')
@@ -335,7 +335,9 @@ def firstPass(FileName, init_Table):
         continue
     
     if '#define' in line: 
-      define, var, address = line.split(' ')
+      L_LINE = line.split(' ')
+      var = L_LINE[1]
+      address = L_LINE[2]
       if int(address, 16) > 0x7FF:
         errorLogger(line, error_line_Counter, 'define mem overflow')
       init_Table[var] = address
@@ -381,6 +383,7 @@ def run(FileName, DEBUGGING):
         out = dataType0(NL_FILE[0], address_Counter)
       if checkDataType(NL_FILE[0], debug_line_counter) == 'typeVar':
         out = ''
+        address_Counter -= 1
       if len(NL_FILE) > 1:
         if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define': 
           NL_FILE[1] = init_Table[str(NL_FILE[1])]
@@ -402,11 +405,16 @@ def run(FileName, DEBUGGING):
 if __name__ == "__main__":
   os.system('cls' if os.name == 'nt' else 'clear')
   asciiart()
-  thing = input('Input full path to .asm file here: ').split(" ")
-  file, DEBUGGING = thing
-  if DEBUGGING:
-    DEBUGGING = distutils.util.strtobool(DEBUGGING)
+  path = input('Input full path to .asm file here: ')
+  thing = path.split(" ")
+  if thing == 2:
+    file, DEBUGGING = thing
+    if DEBUGGING:
+      DEBUGGING = distutils.util.strtobool(DEBUGGING)
+    else:
+      DEBUGGING = False
   else:
+    file = path
     DEBUGGING = False
   t.start()
   try:

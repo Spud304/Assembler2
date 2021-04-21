@@ -10,6 +10,5 @@
 *.json
 *build/
 *.txt
-*.ico
 test.py
 LIM.spec
