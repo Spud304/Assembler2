@@ -40,6 +40,7 @@ class Timer:
 
 
 def asciiart():
+  # Simple ASCII art generator
   Spud = f'{style.GREENBG2}Spud{style.RESET}'
   TheError = f'{style.VIOLET}TheError07{style.RESET}'
   for i in range(2):
@@ -61,6 +62,8 @@ A Creation By {Spud} and {TheError}
 """ + style.RESET)
   print(f'Ver: {VER}')
 
+
+# Progress bar, removed since it took too much time to display
 def progressbar(it, prefix="", size=60, file=sys.stdout):
     count = len(it)
     def show(j):
@@ -75,6 +78,7 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
     file.flush()
 
 # Class of different styles
+# For colors on the console
 class style():
     BLACK = '\033[30m'
     RED = '\033[31m'
@@ -109,6 +113,7 @@ def openOrCreate(file):
     return hack
 
 def createTable():
+  #Create the symbol table, which is responsible for vars and labels
   values = {}
   Symbol_Table = open('symbolTable.json', 'w')
   jsonf = json.dumps(values)
@@ -116,6 +121,7 @@ def createTable():
   Symbol_Table.close()
 
 def wipeFiles(DEBUGGING):
+  # Since high and low .bin are always going to be the outputs they need to be wiped each run
   createTable()
   open('high.bin', 'wb').close()
   open('low.bin', 'wb').close()
@@ -128,6 +134,7 @@ def wipeFiles(DEBUGGING):
       return
 
 def find(pattern):
+  #Simple pathfinding code for finding files in the dir
   path = os.getcwd()
   result = []
   for root, dirs, files in os.walk(path):
@@ -138,13 +145,15 @@ def find(pattern):
 
 def errorLogger(msg, line, whereFrom):
   if msg == 'fileNotFound':
+    # For the fileNotfound error, since it doesnt require any removals or line error logging
     print('Killing process, fix your code')
     input('Press enter to close... ')
     os.kill(os.getpid(), 9)
   else:
     file = find('temp_file.txt')[0]
     print(f'{style.RED}{msg} on line: {line} caused a problem{style.RESET} {whereFrom}')
-    os.remove(file)
+    # Remove extra files
+    os.remove(file) 
     os.remove('symbolTable.json')
     print('Killing process, fix your code')
     input('Press enter to close... ')
@@ -177,11 +186,13 @@ def checkDataType(msg: str, line):
   }
   try:
     return command[msg]
+    # Dict of all valid commands, returns the command type so that they can be handled properly
   except KeyError:
     errorLogger(msg, line, 'Unknown Command')
 
 
 def dataType0(msg: str, line):
+  # Handles the datatype0 command, check data sheet for how they work
   command = {
     'INX' : 0x06,
     'DEX' : 0x07,
@@ -198,6 +209,7 @@ def dataType0(msg: str, line):
 
 
 def dataType1(msg: str, address: int, line):
+  # Handles the datatype1 command, check data sheet for how they work
   command = {
     'LDX' : 0x00,
     'STX' : 0x01,
@@ -220,6 +232,7 @@ def dataType1(msg: str, address: int, line):
     errorLogger(msg, line, 'datatype1 value error')
 
 def dataType2(msg: str, value: int, line):
+  # Handles the datatype2 command, check data sheet for how they work
   command = {
     'LVX' : 0x04,
     'LVY' : 0x05,
@@ -233,6 +246,7 @@ def dataType2(msg: str, value: int, line):
     errorLogger(msg, line, 'datatype2 value error')
 
 def fillFile():
+  # Fills the remaining file with 0xFF bits, just how the cpu works
   fillBit = b'\xFF'
   HIGH_FILE = 'high.bin'
   LOW_FILE = 'low.bin'
@@ -246,10 +260,13 @@ def fillFile():
 def writeToHighLowFile(output, DEBUGGING: bool):
   DEBUGGING = DEBUGGING
   if len(output.strip()) == 0:
+    #makes sure to not write empty lines
     return
-  dataHigh = bytes([int(output[0:8], 2)])
+  #split the 16 bits into high and low and also byte like data instead of strings
+  dataHigh = bytes([int(output[0:8], 2)]) 
   dataLow = bytes([int(output[8:16], 2)])
   try:
+    #this just writes to file
     DEBUG_FILE = 'debug.txt'
     HIGH_FILE = 'high.bin'
     LOW_FILE = 'low.bin'
@@ -274,16 +291,18 @@ def writeToHighLowFile(output, DEBUGGING: bool):
 
 def createTempFile(FileName):
   if FileName == '':
+    # Make sure it isnt creating a blank file
     return
   temp_file = os.path.dirname(FileName) + '\\' + 'temp_file.txt'
   openOrCreate(temp_file)
   toCopy = open(FileName, 'r').read()
   openTemp = open(temp_file, 'w')
-  openTemp.write(toCopy)
+  openTemp.write(toCopy) # Copy over the original file
   openTemp.close()
   return temp_file
 
 def removeAllComments(FileName):
+  # Strips all comments from temp file since they arent needed
   pattern = '(\/\*(\w|\D)+\*\/)|(\/\/(?:[^\r\n]|\r(?!\n))*)'
   file = open(FileName, 'r').read()
   nfile = re.sub(pattern, '', file)
@@ -301,6 +320,7 @@ def symbolWrite(init_Table):
 
 
 def firstPass(FileName, init_Table):
+  #first pass doesnt do any translating, just adding to the symbol table and setting the file for translating
   removeAllComments(FileName)
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
@@ -310,7 +330,7 @@ def firstPass(FileName, init_Table):
       LL_FILE.append(x)
   hex_line_Counter = 0
   error_line_Counter = 1
-  pattern = ('\w+:')
+  pattern = ('\w+:') # Label patter
   for line in LL_FILE:
     if len(line.strip()) == 0:
       error_line_Counter += 1
@@ -320,6 +340,7 @@ def firstPass(FileName, init_Table):
     while("" in temp_Line) :
       temp_Line.remove("")
     if re.search(pattern, line):
+      # Since I dumb, when I split line it could be a couple different lengths meaning label will be in a diff spot, this is how I find it
       if len(temp_Line) == 1:
         init_Table[temp_Line[0].split(':')[0]] = hex(hex_line_Counter)
         hex_line_Counter +=1
@@ -334,6 +355,7 @@ def firstPass(FileName, init_Table):
         continue
     
     if '#define' in line: 
+      # Add definitions to the symbol table
       L_LINE = line.split(' ')
       var = L_LINE[1]
       address = L_LINE[2]
@@ -346,6 +368,7 @@ def firstPass(FileName, init_Table):
   symbolWrite(init_Table)
 
 def checkValidMem(line, line_Counter):
+  # Makes sure its a valid memory address
   if checkDataType(line[0], line_Counter) == 'type1' or 'type2':
     address = int(line[1], 16)
     if address > 0x7FF:
@@ -354,6 +377,7 @@ def checkValidMem(line, line_Counter):
     return
 
 def makeBar():
+  #code for progress bar, since been removed
   for i in progressbar(range(100), "Computing: ", 40):
     time.sleep(0.0001) # ineffcient but looks cool as hell
 
@@ -362,7 +386,7 @@ def run(FileName, DEBUGGING):
   init_Table = {}
   address_Counter = 0
   debug_line_counter = 1
-  firstPass(FileName, init_Table)
+  firstPass(FileName, init_Table) # Set up file
   file = open(FileName, 'r').read() #open file
   L_FILE = file.split('\n')
   LL_FILE = []
