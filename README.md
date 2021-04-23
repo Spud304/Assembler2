@@ -55,7 +55,7 @@ A Simple assembler for the LIM CPU, Developed by Me with help from theerror07
 
 ## :white_check_mark: Requirements ##
 
-Before starting :checkered_flag:, you need to have [python](https://www.python.org/)
+Before starting :checkered_flag:, you need to have [Python](https://www.python.org/)
 
 ## :checkered_flag: Starting ##
 
@@ -70,6 +70,20 @@ $ cd LIM-Assembler
 $ python3 LIM.py
 
 ```
+
+## :framed_picture: Compile ##
+
+If you want an .exe of your edited code, use [Pyinstaller](https://www.pyinstaller.org/)
+
+```bash
+
+$ cd LIM-Assembler
+
+$ pyinstaller --onefile -i asm2bin.ico LIM.py
+
+```
+
+Then in the build folder your new and improved .exe will be created
 
 ## :memo: License ##
 
