@@ -374,10 +374,13 @@ def firstPass(FileName, init_Table):
             L_LINE = line.split(' ')
             var = L_LINE[1]
             address = L_LINE[2]
-            if int(address, 16) > 0x7FF:
-                errorLogger(line, error_line_Counter, 'define mem overflow')
-            init_Table[var] = address
-            hex_line_Counter -= 1
+            try:
+                if int(address, 16) > 0x7FF:
+                    errorLogger(line, error_line_Counter, 'define mem overflow')
+                init_Table[var] = address
+                hex_line_Counter -= 1
+            except:
+                errorLogger(line, error_line_Counter, 'definition error')
         error_line_Counter += 1
         hex_line_Counter += 1
     symbolWrite(init_Table)
