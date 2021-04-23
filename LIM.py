@@ -7,7 +7,7 @@ import fnmatch
 import distutils.util
 
 os.system("")
-VER = '1.0.5'
+VER = '1.0.6'
 # DEBUGGING = False
 
 # Copyright, 2021, Henry Price, All rights Reserved
