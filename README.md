@@ -57,6 +57,12 @@ A Simple assembler for the LIM CPU, Developed by Me with help from theerror07
 
 Before starting :checkered_flag:, you need to have [Python](https://www.python.org/)
 
+## Using Pip ##
+
+```bash
+$ pip install LIM
+```
+
 ## :checkered_flag: Starting ##
 
 ```bash

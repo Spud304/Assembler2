@@ -156,7 +156,6 @@ def errorLogger(msg, line, whereFrom):
     if msg == 'fileNotFound':
         # For the fileNotfound error, since it doesnt require any removals or line error logging
         print('Killing process, fix your code')
-        input('Press enter to close... ')
         os.kill(os.getpid(), 9)
     else:
         file = find('temp_file.txt')[0]
@@ -166,7 +165,6 @@ def errorLogger(msg, line, whereFrom):
         os.remove(file)
         os.remove('symbolTable.json')
         print('Killing process, fix your code')
-        input('Press enter to close... ')
         os.kill(os.getpid(), 9)
 
 
@@ -449,19 +447,21 @@ def run(FileName, DEBUGGING):
     return address_Counter
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
+    from setuptools import setup, find_packages
+    args = sys.argv
     os.system('cls' if os.name == 'nt' else 'clear')
+    os.chdir(os.path.dirname(args[1]))
     asciiart()
-    path = input('Input full path to .asm file here: ')
-    thing = path.split(" ")
-    if thing == 2:
-        file, DEBUGGING = thing
+    thing = args
+    if len(thing) == 3:
+        garb, file, DEBUGGING = thing
         if DEBUGGING:
             DEBUGGING = distutils.util.strtobool(DEBUGGING)
         else:
             DEBUGGING = False
     else:
-        file = path
+        file = args[1]
         DEBUGGING = False
     t.start()
     try:
@@ -473,7 +473,6 @@ if __name__ == "__main__":
             f'{style.RED}Either file is not valid or you did not input a file path\nAssembler thinks the path is {style.RESET}[{file}]')
         print('You could also check to see if the file is in too large of a folder, blame to coder for a bad search function')
         errorLogger('fileNotFound', 0, 0)
-    # num_lines = sum(1 for line in open(file))
     t.stop()
     os.remove(file)
     os.remove('symbolTable.json')
@@ -482,4 +481,3 @@ if __name__ == "__main__":
         print(f'{style.RED}Warning you have used over 2012 words of memory, \nin total you have used {lines} words of memory {style.RESET}')
     else:
         print(f'You have used {lines} words of memory out of 2012')
-    input('Press enter to close... ')
