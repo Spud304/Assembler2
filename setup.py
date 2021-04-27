@@ -1,5 +1,7 @@
-
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from distutils.core import setup, find_packages
 from io import open
 from os import path
 
@@ -19,15 +21,15 @@ install_requires = [x.strip() for x in all_reqs if ('git+' not in x) and (
 dependency_links = [x.strip().replace('git+', '') for x in all_reqs \
                     if 'git+' not in x]
 setup (
- name = 'LIM',
+ name = 'LIM-cpu',
  description = 'Simple command line app for converting asm files to bin files for the LIM cpu',
- version = '1.0.6',
+ version = '1.0.1',
  packages = find_packages(), # list of all packages
  install_requires = install_requires,
  python_requires='>=3.9', # any python greater than 3.9
  entry_points='''
         [console_scripts]
-        LIM=LIM.__main__:main
+        LIM-cpu=LIM.LIM:main
     ''',
  author="Henry Price",
  keyword="lim, asm, assembler, assembly, CPU",

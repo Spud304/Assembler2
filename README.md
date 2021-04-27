@@ -33,11 +33,12 @@
 <hr> -->
 
 <p align="center">
-  <a href="#dart-about">About</a> &#xa0; | &#xa0; 
-  <a href="#sparkles-features">Features</a> &#xa0; | &#xa0;
-  <a href="#white_check_mark-requirements">Requirements</a> &#xa0; | &#xa0;
-  <a href="#checkered_flag-starting">Starting</a> &#xa0; | &#xa0;
-  <a href="#memo-license">License</a> &#xa0; | &#xa0;
+  <a href="#about">About</a> &#xa0; | &#xa0; 
+  <a href="#features">Features</a> &#xa0; | &#xa0;
+  <a href="#requirements">Requirements</a> &#xa0; | &#xa0;
+  <a href="#installation">Installation</a> &#xa0; | &#xa0;
+  <a href="#starting">Starting</a> &#xa0; | &#xa0;
+  <a href="#license">License</a> &#xa0; | &#xa0;
   <a href="https://github.com/Spud304" target="_blank">Author</a>
 </p>
 
@@ -45,58 +46,35 @@
 
 ## About ##
 
-A Simple assembler for the LIM CPU, Developed by Me with help from theerror07
+A Simple assembler for the LIM CPU, Developed by Henry Price with help from theerror07
 
-## :sparkles: Features ##
+## Features ##
 
-:heavy_check_mark: Var Definition;\
-:heavy_check_mark: Memory Allocation Warning;\
-:heavy_check_mark: Cool timer;
+Var Definition;\
+Memory Allocation Warning;\
+Cool timer;
 
-## :white_check_mark: Requirements ##
+## Requirements ##
 
-Before starting :checkered_flag:, you need to have [Python](https://www.python.org/)
+Before starting, you need to have [Python](https://www.python.org/)
 
-## Using Pip ##
-
-```bash
-$ pip install LIM
-```
-
-## :checkered_flag: Starting ##
+## Installation ##
 
 ```bash
-# Clone this project
-$ git clone https://github.com/Spud304/LIM-Assembler
-
-# Access
-$ cd LIM-Assembler
-
-# Run
-$ python3 LIM.py
-
+$ pip install LIM-cpu
 ```
 
-## :framed_picture: Compile ##
-
-If you want an .exe of your edited code, use [Pyinstaller](https://www.pyinstaller.org/)
+## Starting ##
 
 ```bash
-
-$ cd LIM-Assembler
-
-$ pyinstaller --onefile -i asm2bin.ico LIM.py
-
+$ LIM-cpu <file_path_here> <debug_mode (optional)>
 ```
+High.bin and low.bin will be placed in the same dir as the file
 
-Then in the build folder your new and improved .exe will be created
-
-## :memo: License ##
+## License ##
 
 This project is under license from MIT. For more details, see the [LICENSE](LICENSE.md) file.
-
-
-Made with :heart: by <a href="https://github.com/Spud304" target="_blank">Spud</a>
+Made by <a href="https://github.com/Spud304" target="_blank">Spud</a>
 
 &#xa0;
 
