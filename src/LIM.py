@@ -413,7 +413,6 @@ def run(FileName, DEBUGGING):
     for x in L_FILE:
         LL_FILE.append(x)
 
-    # print(LL_FILE)
     for line in LL_FILE:
         if len(line.strip()) == 0:
             debug_line_counter += 1
@@ -469,7 +468,6 @@ if __name__ == "__main__":
             f'{style.RED}Either file is not valid or you did not input a file path\nAssembler thinks the path is {style.RESET}[{file}]')
         print('You could also check to see if the file is in too large of a folder, blame to coder for a bad search function')
         errorLogger('fileNotFound', 0, 0)
-    # num_lines = sum(1 for line in open(file))
     t.stop()
     os.remove(file)
     os.remove('symbolTable.json')
