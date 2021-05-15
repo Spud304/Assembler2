@@ -23,7 +23,7 @@ dependency_links = [x.strip().replace('git+', '') for x in all_reqs \
 setup (
  name = 'LIM-cpu',
  description = 'Simple command line app for converting asm files to bin files for the LIM cpu',
- version = '1.0.1',
+ version = '1.0.2',
  packages = find_packages(), # list of all packages
  install_requires = install_requires,
  python_requires='>=3.9', # any python greater than 3.9

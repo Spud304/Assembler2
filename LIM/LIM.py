@@ -7,7 +7,7 @@ import fnmatch
 import distutils.util
 
 os.system("")
-VER = '1.0.1'
+VER = '1.0.2'
 # DEBUGGING = False
 
 # Copyright, 2021, Henry Price, All rights Reserved
@@ -269,36 +269,31 @@ def fillFile():
 
 
 def writeToHighLowFile(output, DEBUGGING: bool):
+    # this just writes to file
+    DEBUG_FILE = 'debug.txt'
+    HIGH_FILE = 'high.bin'
+    LOW_FILE = 'low.bin'
     DEBUGGING = DEBUGGING
-    if len(output.strip()) == 0:
-        # makes sure to not write empty lines
-        return
-    # split the 16 bits into high and low and also byte like data instead of strings
-    dataHigh = bytes([int(output[0:8], 2)])
-    dataLow = bytes([int(output[8:16], 2)])
-    try:
-        # this just writes to file
-        DEBUG_FILE = 'debug.txt'
-        HIGH_FILE = 'high.bin'
-        LOW_FILE = 'low.bin'
-
-        HF = openOrCreate(HIGH_FILE)
-        HF.write(dataHigh)
-        HF.close()
-
-        LF = openOrCreate(LOW_FILE)
-        LF.write(dataLow)
-        LF.close()
-
-        if DEBUGGING == True:
-            try:
-                DF = open(DEBUG_FILE, 'x')
-            except FileExistsError:  # Creates file if it does not exist, otherwise it overwrites it
-                DF = open(DEBUG_FILE, 'a')
-            DF.write(output + '\n')
+    HF = openOrCreate(HIGH_FILE)
+    LF = openOrCreate(LOW_FILE)
+    if DEBUGGING:
+        try:
+            DF = open(DEBUG_FILE, 'x')
+        except FileExistsError:  # Creates file if it does not exist, otherwise it overwrites it
+            DF = open(DEBUG_FILE, 'a')
+        for line in output:
+            DF.write(line + '\n')
             DF.close()
-    except:
-        return
+    for line in output:
+        if len(line.strip()) == 0:
+            # makes sure to not write empty lines
+            return
+        dataHigh = bytes([int(line[0:8], 2)])
+        dataLow = bytes([int(line[8:16], 2)])
+        HF.write(dataHigh)
+        LF.write(dataLow)
+    HF.close()
+    LF.close()
 
 
 def createTempFile(FileName):
@@ -401,6 +396,7 @@ def makeBar():
 
 
 def run(FileName, DEBUGGING):
+    out = []
     wipeFiles(DEBUGGING)
     init_Table = {}
     address_Counter = 0
@@ -412,38 +408,33 @@ def run(FileName, DEBUGGING):
     # really ugly for loop since I need to increment line counter
     for x in L_FILE:
         LL_FILE.append(x)
-
-    # print(LL_FILE)
     for line in LL_FILE:
         if len(line.strip()) == 0:
             debug_line_counter += 1
             continue
         NL_FILE = line.split(' ')
-        out = ''
-        try:
-            if checkDataType(NL_FILE[0], debug_line_counter) == 'type0':
-                out = dataType0(NL_FILE[0], address_Counter)
-            if checkDataType(NL_FILE[0], debug_line_counter) == 'typeVar':
-                out = ''
-                address_Counter -= 1
-            if len(NL_FILE) > 1:
-                if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define':
-                    NL_FILE[1] = init_Table[str(NL_FILE[1])]
-                if checkDataType(NL_FILE[0], debug_line_counter) == 'type1':
-                    checkValidMem(NL_FILE, address_Counter)
-                    out = dataType1(NL_FILE[0], int(
-                        NL_FILE[1], 16), debug_line_counter)
-                if checkDataType(NL_FILE[0], debug_line_counter) == 'type2':
-                    checkValidMem(NL_FILE, address_Counter)
-                    out = dataType2(NL_FILE[0], int(
-                        NL_FILE[1], 16), address_Counter)
-            debug_line_counter += 1
-            address_Counter += 1
-        except:
-            errorLogger(NL_FILE[0], debug_line_counter,
-                        'Probably a label error or something, consider this a SEGFAULT though, who knows why it broke, it just did')
-
-        writeToHighLowFile(out, DEBUGGING)
+        try:	
+            if checkDataType(NL_FILE[0], debug_line_counter) == 'type0':	
+                out.append(dataType0(NL_FILE[0], address_Counter))	
+            if checkDataType(NL_FILE[0], debug_line_counter) == 'typeVar':	
+                address_Counter -= 1	
+            if len(NL_FILE) > 1:	
+                if NL_FILE[1] in init_Table.keys() and NL_FILE[0] != '#define':	
+                    NL_FILE[1] = init_Table[str(NL_FILE[1])]	
+                if checkDataType(NL_FILE[0], debug_line_counter) == 'type1':	
+                    checkValidMem(NL_FILE, address_Counter)	
+                    out.append(dataType1(NL_FILE[0], int(	
+                        NL_FILE[1], 16), debug_line_counter))	
+                if checkDataType(NL_FILE[0], debug_line_counter) == 'type2':	
+                    checkValidMem(NL_FILE, address_Counter)	
+                    out.append(dataType2(NL_FILE[0], int(	
+                        NL_FILE[1], 16), address_Counter))	
+            debug_line_counter += 1	
+            address_Counter += 1	
+        except:	
+            errorLogger(NL_FILE[0], debug_line_counter,	
+                        'Probably a label error or something, consider this a SEGFAULT though, who knows why it broke, it just did')	
+    writeToHighLowFile(out, DEBUGGING)	
     return address_Counter
 
 
